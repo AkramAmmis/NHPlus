@@ -7,7 +7,7 @@
     <groupId>de.hitec</groupId>
     <artifactId>NHPlussTEST</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>NHPlus</name>
+    <name>NHPlussTEST</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
