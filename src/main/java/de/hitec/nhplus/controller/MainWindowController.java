@@ -16,7 +16,7 @@ public class MainWindowController {
     @FXML
     private void handleShowAllPatient(ActionEvent event) {
         // Diese Methode wird aufgerufen, wenn der Button "Patienten anzeigen" geklickt wird.
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de.hitec/nhplus/AllPatientView.fxml")); // Lädt die Patientenansicht (AllPatientView.fxml).
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/AllPatientView.fxml")); // Lädt die Patientenansicht (AllPatientView.fxml).
         try {
             mainBorderPane.setCenter(loader.load()); // Setzt die Patientenansicht in den zentralen Bereich des BorderPane.
         } catch (IOException exception) {
@@ -27,7 +27,7 @@ public class MainWindowController {
     @FXML
     private void handleShowAllTreatments(ActionEvent event) {
         // Diese Methode wird aufgerufen, wenn der Button "Behandlungen anzeigen" geklickt wird.
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de.hitec/nhplus/AllTreatmentView.fxml")); // Lädt die Behandlungsansicht (AllTreatmentView.fxml).
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/AllTreatmentView.fxml")); // Lädt die Behandlungsansicht (AllTreatmentView.fxml).
         try {
             mainBorderPane.setCenter(loader.load()); // Setzt die Behandlungsansicht in den zentralen Bereich des BorderPane.
         } catch (IOException exception) {
