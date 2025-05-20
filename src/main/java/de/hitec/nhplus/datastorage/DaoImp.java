@@ -1,6 +1,10 @@
 package de.hitec.nhplus.datastorage;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +16,19 @@ public abstract class DaoImp<T> implements Dao<T> {
     }
 
     @Override
-    public void create(T t) throws SQLException {
-        getCreateStatement(t).executeUpdate();
+    public long create(T t) throws SQLException {
+        PreparedStatement preparedStatement = getCreateStatement(t);
+        preparedStatement.executeUpdate();
+        
+        // SQLite-spezifische Methode zum Abrufen der letzten ID
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+            if (rs.next()) {
+                return rs.getLong(1);
+            } else {
+                throw new SQLException("Creating " + t.getClass().getSimpleName() + " failed, no ID obtained.");
+            }
+        }
     }
 
     @Override
@@ -45,6 +60,12 @@ public abstract class DaoImp<T> implements Dao<T> {
 
     protected abstract ArrayList<T> getListFromResultSet(ResultSet set) throws SQLException;
 
+    /**
+     * Erstellt ein PreparedStatement für die Einfügeoperation.
+     * Anmerkung: Bei SQLite ist es nicht notwendig, Statement.RETURN_GENERATED_KEYS zu verwenden.
+     * @param t das zu erstellende Objekt
+     * @return PreparedStatement für die Einfügeoperation
+     */
     protected abstract PreparedStatement getCreateStatement(T t);
 
     protected abstract PreparedStatement getReadByIDStatement(long key);
