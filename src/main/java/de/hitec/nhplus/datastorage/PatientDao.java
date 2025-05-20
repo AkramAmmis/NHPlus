@@ -2,6 +2,8 @@ package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.utils.DateConverter;
+// ... andere Importe ...
+import java.sql.Statement; // Hinzufügen dieses Imports
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -22,6 +24,8 @@ public class PatientDao extends DaoImp<Patient> {
         super(connection);
     }
 
+    // ... Konstruktor ...
+
     /**
      * Generates a <code>PreparedStatement</code> to persist the given object of <code>Patient</code>.
      *
@@ -34,7 +38,8 @@ public class PatientDao extends DaoImp<Patient> {
         try {
             final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber) " +
                     "VALUES (?, ?, ?, ?, ?)";
-            preparedStatement = this.connection.prepareStatement(SQL);
+            // Wichtig: Statement.RETURN_GENERATED_KEYS hinzufügen
+            preparedStatement = this.connection.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
             preparedStatement.setString(3, patient.getDateOfBirth());
