@@ -23,7 +23,6 @@
             <TableColumn fx:id="columnDateOfBirth" maxWidth="7500.0" onEditCommit="#handleOnEditDateOfBirth" prefWidth="75.0" text="Geburtstag" />
             <TableColumn fx:id="columnCareLevel" onEditCommit="#handleOnEditCareLevel" prefWidth="75.0" text="Pflegegrad" />
             <TableColumn fx:id="columnRoomNumber" onEditCommit="#handleOnEditRoomNumber" prefWidth="75.0" text="Raum" />
-            <TableColumn fx:id="columnAssets" onEditCommit="#handleOnEditAssets" prefWidth="75.0" text="Vermögensstand" />
         </columns>
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -47,7 +46,6 @@
                   <TextField fx:id="textFieldDateOfBirth" minWidth="160.0" prefWidth="160.0" promptText="Geburtstag" GridPane.columnIndex="2" />
                   <TextField fx:id="textFieldCareLevel" prefHeight="26.0" prefWidth="200.0" promptText="Pflegegrad" GridPane.rowIndex="1" />
                   <TextField fx:id="textFieldRoomNumber" prefHeight="26.0" prefWidth="200.0" promptText="Raum" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <TextField fx:id="textFieldAssets" minWidth="160.0" prefWidth="160.0" promptText="Vermögensstand" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                </children>
                <padding>
                   <Insets right="10.0" />
