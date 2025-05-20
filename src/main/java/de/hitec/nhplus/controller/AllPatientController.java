@@ -1,5 +1,6 @@
 package de.hitec.nhplus.controller;
 
+import com.sun.javafx.charts.Legend;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import javafx.beans.value.ChangeListener;
@@ -71,6 +72,7 @@ public class AllPatientController {
 
     private final ObservableList<Patient> patients = FXCollections.observableArrayList();
     private PatientDao dao;
+    private Legend.LegendItem textFieldTelephone;
 
     /**
      * When <code>initialize()</code> gets called, all fields are already initialized. For example from the FXMLLoader
@@ -254,16 +256,8 @@ public class AllPatientController {
     }
 
     private boolean areInputDataValid() {
-        if (!this.textFieldDateOfBirth.getText().isBlank()) {
-            try {
-                DateConverter.convertStringToLocalDate(this.textFieldDateOfBirth.getText());
-            } catch (Exception exception) {
-                return false;
-            }
-        }
-
-        return !this.textFieldFirstName.getText().isBlank() && !this.textFieldSurname.getText().isBlank() &&
-                !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
-                !this.textFieldRoomNumber.getText().isBlank();
-    }
+        return !this.textFieldFirstName.getText().isBlank() &&
+           !this.textFieldSurname.getText().isBlank() &&
+           !this.textFieldTelephone.getText().isBlank();
+}
 }
