@@ -1,5 +1,6 @@
 package de.hitec.nhplus.controller;
 
+import com.sun.javafx.charts.Legend;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import javafx.beans.value.ChangeListener;
@@ -46,8 +47,6 @@ public class AllPatientController {
     @FXML
     private TableColumn<Patient, String> columnRoomNumber;
 
-    @FXML
-    private TableColumn<Patient, String> columnAssets;
 
     @FXML
     private Button buttonDelete;
@@ -70,11 +69,10 @@ public class AllPatientController {
     @FXML
     private TextField textFieldRoomNumber;
 
-    @FXML
-    private TextField textFieldAssets;
 
     private final ObservableList<Patient> patients = FXCollections.observableArrayList();
     private PatientDao dao;
+    private Legend.LegendItem textFieldTelephone;
 
     /**
      * When <code>initialize()</code> gets called, all fields are already initialized. For example from the FXMLLoader
@@ -103,9 +101,6 @@ public class AllPatientController {
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        this.columnAssets.setCellValueFactory(new PropertyValueFactory<>("assets"));
-        this.columnAssets.setCellFactory(TextFieldTableCell.forTableColumn());
-
         //Anzeigen der Daten
         this.tableView.setItems(this.patients);
 
@@ -125,7 +120,6 @@ public class AllPatientController {
         this.textFieldDateOfBirth.textProperty().addListener(inputNewPatientListener);
         this.textFieldCareLevel.textProperty().addListener(inputNewPatientListener);
         this.textFieldRoomNumber.textProperty().addListener(inputNewPatientListener);
-        this.textFieldAssets.textProperty().addListener(inputNewPatientListener);
     }
 
     /**
@@ -180,17 +174,6 @@ public class AllPatientController {
     @FXML
     public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event){
         event.getRowValue().setRoomNumber(event.getNewValue());
-        this.doUpdate(event);
-    }
-
-    /**
-     * When a cell of the column with assets was changed, this method will be called, to persist the change.
-     *
-     * @param event Event including the changed object and the change.
-     */
-    @FXML
-    public void handleOnEditAssets(TableColumn.CellEditEvent<Patient, String> event){
-        event.getRowValue().setAssets(event.getNewValue());
         this.doUpdate(event);
     }
 
@@ -252,9 +235,8 @@ public class AllPatientController {
         LocalDate date = DateConverter.convertStringToLocalDate(birthday);
         String careLevel = this.textFieldCareLevel.getText();
         String roomNumber = this.textFieldRoomNumber.getText();
-        String assets = this.textFieldAssets.getText();
         try {
-            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber, assets));
+            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -271,20 +253,11 @@ public class AllPatientController {
         this.textFieldDateOfBirth.clear();
         this.textFieldCareLevel.clear();
         this.textFieldRoomNumber.clear();
-        this.textFieldAssets.clear();
     }
 
     private boolean areInputDataValid() {
-        if (!this.textFieldDateOfBirth.getText().isBlank()) {
-            try {
-                DateConverter.convertStringToLocalDate(this.textFieldDateOfBirth.getText());
-            } catch (Exception exception) {
-                return false;
-            }
-        }
-
-        return !this.textFieldFirstName.getText().isBlank() && !this.textFieldSurname.getText().isBlank() &&
-                !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
-                !this.textFieldRoomNumber.getText().isBlank() && !this.textFieldAssets.getText().isBlank();
-    }
+        return !this.textFieldFirstName.getText().isBlank() &&
+           !this.textFieldSurname.getText().isBlank() &&
+           !this.textFieldTelephone.getText().isBlank();
+}
 }
