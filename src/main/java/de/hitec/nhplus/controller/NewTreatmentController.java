@@ -2,6 +2,7 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.model.Caregiver;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -44,10 +45,12 @@ public class NewTreatmentController {
     private AllTreatmentController controller;
     private Patient patient;
     private Stage stage;
+    private Caregiver caregiver;
 
-    public void initialize(AllTreatmentController controller, Stage stage, Patient patient) {
+    public void initialize(AllTreatmentController controller, Stage stage, Patient patient, Caregiver caregiver) {
         this.controller= controller;
         this.patient = patient;
+        this.caregiver = caregiver;
         this.stage = stage;
 
         this.buttonAdd.setDisable(true);
@@ -84,7 +87,7 @@ public class NewTreatmentController {
         LocalTime end = DateConverter.convertStringToLocalTime(textFieldEnd.getText());
         String description = textFieldDescription.getText();
         String remarks = textAreaRemarks.getText();
-        Treatment treatment = new Treatment(patient.getPid(), date, begin, end, description, remarks);
+        Treatment treatment = new Treatment(patient.getPid(), caregiver.getCid(), date, begin, end, description, remarks);
         createTreatment(treatment);
         controller.readAllAndShowInTableView();
         stage.close();
