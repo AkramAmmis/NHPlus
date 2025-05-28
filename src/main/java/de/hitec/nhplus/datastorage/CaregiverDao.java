@@ -2,46 +2,55 @@ package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Caregiver;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
- * Interface for data access operations for caregivers.
+ * Interface für den Datenbankzugriff auf Caregiver-Objekte
  */
 public interface CaregiverDao extends Dao<Caregiver> {
-    /**
-     * Creates a new caregiver record in the database.
-     * @param caregiver The caregiver object to create.
-     * @return The generated ID of the new caregiver.
-     * @throws SQLException if a database access error occurs.
-     */
-    long create(Caregiver caregiver) throws SQLException;
 
     /**
-     * Reads a caregiver by its ID.
-     * @param key The ID of the caregiver.
-     * @return The caregiver object if found, otherwise null.
-     * @throws SQLException if a database access error occurs.
+     * Erstellt die benötigte Tabelle in der Datenbank
      */
-    Caregiver read(long key) throws SQLException;
+    void createTable();
 
     /**
-     * Reads all caregivers from the database.
-     * @return A list of all caregivers.
-     * @throws SQLException if a database access error occurs.
+     * Erstellt einen neuen Pfleger in der Datenbank
+     * @param caregiver Der zu erstellende Pfleger
+     * @return Der erstellte Pfleger mit gesetzter ID
      */
-    List<Caregiver> readAll() throws SQLException;
+    Caregiver createCaregiver(Caregiver caregiver);
 
     /**
-     * Updates an existing caregiver record in the database.
-     * @param caregiver The caregiver object to update.
-     * @throws SQLException if a database access error occurs.
+     * Gibt alle Pfleger zurück
+     * @return Eine Liste aller Pfleger
      */
-    void update(Caregiver caregiver) throws SQLException;
+    ArrayList<Caregiver> readAllCaregivers();
 
     /**
-     * Deletes a caregiver by its ID.
-     * @param key The ID of the caregiver to delete.
-     * @throws SQLException if a database access error occurs.
+     * Liest einen Pfleger anhand seiner ID aus der Datenbank, fängt Exceptions ab
+     * @param cid ID des Pflegers
+     * @return Caregiver-Objekt oder null
      */
-    void deleteById(long key) throws SQLException;
+    Caregiver readCaregiver(long cid);
+
+    /**
+     * Aktualisiert einen Pfleger in der Datenbank, fängt Exceptions ab
+     * @param caregiver zu aktualisierender Pfleger
+     */
+    void updateCaregiver(Caregiver caregiver);
+
+    /**
+     * Löscht einen Pfleger aus der Datenbank
+     * @param caregiver zu löschender Pfleger
+     */
+    void delete(Caregiver caregiver);
+
+    /**
+     * Authentifiziert einen Pfleger mit Benutzername und Passwort
+     * @param username Benutzername
+     * @param password Passwort
+     * @return Caregiver-Objekt wenn Login erfolgreich, sonst null
+     */
+    Caregiver authenticate(String username, String password);
 }

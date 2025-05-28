@@ -48,6 +48,14 @@ public class DaoFactory {
         return new CaregiverDaoImpl(ConnectionBuilder.getConnection());
     }
 
+    /**
+     * Erstellt und gibt eine UserDao Instanz zurück.
+     * @return Eine UserDao Instanz.
+     */
+    public UserDao createUserDAO() {
+        return new UserDaoImpl(ConnectionBuilder.getConnection());
+    }
+
     // Wenn Sie eine UserDao haben, fügen Sie hier auch eine create Methode dafür hinzu:
     // public UserDao createUserDao() {
     //     return new UserDaoImpl(ConnectionBuilder.getConnection());

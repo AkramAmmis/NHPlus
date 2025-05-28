@@ -18,15 +18,37 @@ public abstract class DaoImp<T> implements Dao<T> {
     @Override
     public long create(T t) throws SQLException {
         PreparedStatement preparedStatement = getCreateStatement(t);
-        preparedStatement.executeUpdate();
-        
-        // SQLite-spezifische Methode zum Abrufen der letzten ID
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-            if (rs.next()) {
-                return rs.getLong(1);
-            } else {
-                throw new SQLException("Creating " + t.getClass().getSimpleName() + " failed, no ID obtained.");
+
+        // Prüfen, ob das PreparedStatement null ist
+        if (preparedStatement == null) {
+            throw new SQLException("Fehler beim Erstellen des Objekts " + t.getClass().getSimpleName() + ": PreparedStatement ist null.");
+        }
+
+        try {
+            preparedStatement.executeUpdate();
+
+            // SQLite-spezifische Methode zum Abrufen der letzten ID
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                } else {
+                    throw new SQLException("Creating " + t.getClass().getSimpleName() + " failed, no ID obtained.");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL-Fehler beim Ausführen des PreparedStatements: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Unerwarteter Fehler beim Erstellen des Objekts: " + e.getMessage());
+            throw new SQLException("Fehler beim Erstellen: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Fehler beim Schließen des PreparedStatements: " + e.getMessage());
             }
         }
     }
