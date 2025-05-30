@@ -87,8 +87,18 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         try {
             user.setCaregiverId(result.getLong("caregiver_id"));
         } catch (SQLException e) {
-            // Spalte existiert möglicherweise nicht in älteren Datenbanken
             user.setCaregiverId(0);
+        }
+        // Neue Felder für Login-Sperre lesen
+        try {
+            user.setFailedAttempts(result.getInt("failed_attempts"));
+        } catch (SQLException e) {
+            user.setFailedAttempts(0);
+        }
+        try {
+            user.setLockUntil(result.getLong("lock_until"));
+        } catch (SQLException e) {
+            user.setLockUntil(0);
         }
 
         return user;
@@ -120,26 +130,28 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         PreparedStatement preparedStatement = null;
         try {
             final String SQL = "UPDATE users SET username = ?, password = ?, first_name = ?, " +
-                              "last_name = ?, email = ?, phone_number = ?, role = ? WHERE uid = ?";
+                              "last_name = ?, email = ?, phone_number = ?, role = ?, caregiver_id = ?, failed_attempts = ?, lock_until = ? WHERE uid = ?";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, user.getUsername());
 
             // Prüfen, ob das Passwort bereits verschlüsselt ist
             String currentPasswordInDb = getPasswordFromDatabase(user.getUid());
-            if (currentPasswordInDb != null && currentPasswordInDb.equals(user.getPassword())) {
-                // Das Passwort wurde nicht geändert - verwende es wie es ist
-                preparedStatement.setString(2, user.getPassword());
-            } else {
-                // Das Passwort wurde geändert oder ist neu - verschlüsseln
-                preparedStatement.setString(2, encryptPassword(user.getPassword()));
-            }
+            System.out.println("Aktuelles Benutzer-Passwort in DB: " + (currentPasswordInDb != null ? "[verschlüsselt]" : "null"));
+            System.out.println("Neues Benutzer-Passwort: " + (user.getPassword() != null ? "[vorhanden]" : "null"));
+
+            // Immer verschlüsseln, wenn ein neues Passwort gesetzt wird
+            preparedStatement.setString(2, encryptPassword(user.getPassword()));
+            System.out.println("Benutzer-Passwort wurde verschlüsselt und wird aktualisiert.");
 
             preparedStatement.setString(3, user.getFirstName());
             preparedStatement.setString(4, user.getLastName());
             preparedStatement.setString(5, user.getEmail());
             preparedStatement.setString(6, user.getPhoneNumber());
             preparedStatement.setString(7, user.getRole().name());
-            preparedStatement.setLong(8, user.getUid());
+            preparedStatement.setLong(8, user.getCaregiverId());
+            preparedStatement.setInt(9, user.getFailedAttempts());
+            preparedStatement.setLong(10, user.getLockUntil());
+            preparedStatement.setLong(11, user.getUid());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -204,12 +216,54 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                                 "email TEXT, " +
                                 "phone_number TEXT, " +
                                 "role TEXT NOT NULL, " +
-                                "caregiver_id BIGINT DEFAULT 0)");
+                                "caregiver_id BIGINT DEFAULT 0, " +
+                                "failed_attempts INTEGER DEFAULT 0, " +
+                                "lock_until BIGINT DEFAULT 0)");
 
                 System.out.println("Benutzer-Tabelle 'users' wurde erstellt");
 
                 // Admin-Benutzer erstellen
                 createAdminUser();
+            } else {
+                // Prüfen, ob die Spalte caregiver_id existiert
+                try {
+                    ResultSet columns = connection.getMetaData().getColumns(null, null, "users", "caregiver_id");
+                    boolean caregiverIdExists = columns.next();
+                    columns.close();
+
+                    if (!caregiverIdExists) {
+                        System.out.println("Spalte 'caregiver_id' fehlt in der Tabelle 'users'. Füge hinzu...");
+                        st.executeUpdate("ALTER TABLE users ADD COLUMN caregiver_id BIGINT DEFAULT 0");
+                        System.out.println("Spalte 'caregiver_id' wurde zur Tabelle 'users' hinzugefügt.");
+                    }
+                    // Neue Felder für Login-Sperre prüfen und ggf. hinzufügen
+                    ResultSet failedAttemptsCol = connection.getMetaData().getColumns(null, null, "users", "failed_attempts");
+                    if (!failedAttemptsCol.next()) {
+                        st.executeUpdate("ALTER TABLE users ADD COLUMN failed_attempts INTEGER DEFAULT 0");
+                        System.out.println("Spalte 'failed_attempts' wurde zur Tabelle 'users' hinzugefügt.");
+                    }
+                    failedAttemptsCol.close();
+                    ResultSet lockUntilCol = connection.getMetaData().getColumns(null, null, "users", "lock_until");
+                    if (!lockUntilCol.next()) {
+                        st.executeUpdate("ALTER TABLE users ADD COLUMN lock_until BIGINT DEFAULT 0");
+                        System.out.println("Spalte 'lock_until' wurde zur Tabelle 'users' hinzugefügt.");
+                    }
+                    lockUntilCol.close();
+                } catch (SQLException ex) {
+                    System.err.println("Fehler beim Prüfen oder Hinzufügen der Spalte 'caregiver_id': " + ex.getMessage());
+                    ex.printStackTrace();
+
+                    // Notfallversuch, falls die Metadaten-Abfrage fehlschlägt
+                    try {
+                        st.executeUpdate("ALTER TABLE users ADD COLUMN caregiver_id BIGINT DEFAULT 0");
+                        System.out.println("Spalte 'caregiver_id' wurde zur Tabelle 'users' hinzugefügt (Notfallversuch).");
+                    } catch (SQLException e) {
+                        // Ignorieren, falls Spalte bereits existiert
+                        if (!e.getMessage().contains("duplicate column")) {
+                            throw e; // Andere Fehler weitergeben
+                        }
+                    }
+                }
             }
 
             st.close();

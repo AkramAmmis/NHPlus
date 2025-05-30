@@ -74,13 +74,26 @@ public class LoginViewController {
                 return;
             }
 
-            // Anmeldung durchführen
-            User user = this.userDao.authenticate(username, password);
+            // Benutzer holen (für Sperrprüfung und Fehlversuche)
+            User user = this.userDao.findByUsername(username);
+            long now = System.currentTimeMillis();
+            if (user != null && user.getLockUntil() > now) {
+                long minLeft = (user.getLockUntil() - now) / 60000 + 1;
+                this.lblStatus.setText("Account gesperrt für " + minLeft + " min.");
+                this.lblStatus.setTextFill(Color.RED);
+                return;
+            }
 
-            if (user != null) {
-                // Anmeldung erfolgreich
-                AuthorizationManager.getInstance().setCurrentUser(user);
-                System.out.println("Benutzer '" + user.getUsername() + "' erfolgreich authentifiziert.");
+            // Anmeldung durchführen
+            User authUser = this.userDao.authenticate(username, password);
+
+            if (authUser != null) {
+                // Anmeldung erfolgreich: Fehlversuche zurücksetzen
+                authUser.setFailedAttempts(0);
+                authUser.setLockUntil(0);
+                this.userDao.updateUser(authUser);
+                AuthorizationManager.getInstance().setCurrentUser(authUser);
+                System.out.println("Benutzer '" + authUser.getUsername() + "' erfolgreich authentifiziert.");
 
                 try {
                     // Stage für das Hauptfenster holen
@@ -92,20 +105,30 @@ public class LoginViewController {
                         this.mainController.setPrimaryStage(loginStage);
                         this.mainController.showMainView();
                     } else {
-                    System.err.println("MainWindowController ist null. Kann nicht zur Hauptansicht wechseln.");
-                    this.showError("Anwendungsfehler", "Die Anwendung konnte nicht korrekt initialisiert werden.");
+                        System.err.println("MainWindowController ist null. Kann nicht zur Hauptansicht wechseln.");
+                        this.showError("Anwendungsfehler", "Die Anwendung konnte nicht korrekt initialisiert werden.");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Fehler bei der Anmeldung: " + e.getMessage());
+                    e.printStackTrace();
+                    this.showError("Anmeldefehler", "Fehler beim Anzeigen der Hauptansicht: " + e.getMessage());
                 }
-                                } catch (Exception e) {
-                System.err.println("Fehler bei der Anmeldung: " + e.getMessage());
-                e.printStackTrace();
-                this.showError("Anmeldefehler", "Fehler beim Anzeigen der Hauptansicht: " + e.getMessage());
-                                }
             } else {
                 // Anmeldung fehlgeschlagen
-                this.lblStatus.setText("Benutzername oder Passwort falsch!");
+                if (user != null) {
+                    int attempts = user.getFailedAttempts() + 1;
+                    user.setFailedAttempts(attempts);
+                    if (attempts >= 3) {
+                        user.setLockUntil(System.currentTimeMillis() + 15 * 60 * 1000); // 15 Minuten Sperre
+                        this.lblStatus.setText("Account gesperrt für 15 min.");
+                    } else {
+                        this.lblStatus.setText("Benutzername oder Passwort falsch! (" + attempts + "/3)");
+                    }
+                    this.userDao.updateUser(user);
+                } else {
+                    this.lblStatus.setText("Benutzername oder Passwort falsch!");
+                }
                 this.lblStatus.setTextFill(Color.RED);
-
-                // Passwortfeld leeren und Fokus setzen
                 this.passwordField.clear();
                 this.passwordField.requestFocus();
             }

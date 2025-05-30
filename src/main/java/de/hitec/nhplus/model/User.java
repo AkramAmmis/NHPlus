@@ -14,6 +14,9 @@ public class User {
     private UserRole role;
     private long caregiverId;
 
+    private int failedAttempts; // Anzahl Fehlversuche
+    private long lockUntil;     // Zeitstempel bis wann gesperrt (Millis)
+
     /**
      * Konstruktor für einen neuen Benutzer ohne ID
      * @param username Benutzername
@@ -240,6 +243,22 @@ public class User {
      */
     public boolean isCaregiver() {
         return role == UserRole.CAREGIVER;
+    }
+
+    public int getFailedAttempts() {
+        return failedAttempts;
+    }
+
+    public void setFailedAttempts(int failedAttempts) {
+        this.failedAttempts = failedAttempts;
+    }
+
+    public long getLockUntil() {
+        return lockUntil;
+    }
+
+    public void setLockUntil(long lockUntil) {
+        this.lockUntil = lockUntil;
     }
 
     @Override

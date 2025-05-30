@@ -77,6 +77,9 @@ public class AllCaregiverController {
     private Button buttonAdd;
 
     @FXML
+    private Button buttonChangePassword;
+
+    @FXML
     private TextField textFieldSurname;
 
     @FXML
@@ -128,8 +131,19 @@ public class AllCaregiverController {
         this.buttonDelete.setDisable(true);
         this.buttonDelete.setVisible(isAdmin); // Nur für Admins sichtbar machen
 
-        this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldCaregiver, newCaregiver) ->
-            AllCaregiverController.this.buttonDelete.setDisable(newCaregiver == null || !isAdmin));
+        // Passwort-Ändern-Button konfigurieren
+        if (this.buttonChangePassword != null) {
+            this.buttonChangePassword.setDisable(true);
+            this.buttonChangePassword.setVisible(isAdmin); // Nur für Admins sichtbar machen
+
+            this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldCaregiver, newCaregiver) -> {
+                AllCaregiverController.this.buttonDelete.setDisable(newCaregiver == null || !isAdmin);
+                AllCaregiverController.this.buttonChangePassword.setDisable(newCaregiver == null || !isAdmin);
+            });
+        } else {
+            this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldCaregiver, newCaregiver) ->
+                AllCaregiverController.this.buttonDelete.setDisable(newCaregiver == null || !isAdmin));
+        }
 
         this.buttonAdd.setDisable(true);
         ChangeListener<String> inputNewCaregiverListener = (observableValue, oldText, newText) ->
@@ -288,6 +302,164 @@ public class AllCaregiverController {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * Ermöglicht Administratoren, das Passwort eines Pflegers zu ändern
+     */
+    @FXML
+    public void handleChangePassword() {
+        // Prüfen, ob der Benutzer Admin-Rechte hat
+        if (!AuthorizationManager.getInstance().isAdmin()) {
+            System.err.println("Nur Administratoren können Passwörter ändern!");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Zugriff verweigert");
+            alert.setHeaderText("Fehlende Berechtigung");
+            alert.setContentText("Nur Administratoren können Passwörter ändern!");
+            alert.showAndWait();
+            return;
+        }
+
+        // Prüfen, ob ein Pfleger ausgewählt ist
+        Caregiver selectedItem = this.tableView.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Keine Auswahl");
+            alert.setHeaderText("Kein Pfleger ausgewählt");
+            alert.setContentText("Bitte wählen Sie einen Pfleger aus, dessen Passwort Sie ändern möchten.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Dialog für neues Passwort erstellen
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Passwort ändern");
+        dialog.setHeaderText("Neues Passwort für " + selectedItem.getFirstName() + " " + selectedItem.getSurname() + " festlegen");
+
+        // Buttons einrichten
+        ButtonType confirmButtonType = new ButtonType("Bestätigen", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+
+        // Layout erstellen
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Neues Passwort");
+        PasswordField confirmPasswordField = new PasswordField();
+        confirmPasswordField.setPromptText("Passwort bestätigen");
+
+        grid.add(new Label("Neues Passwort:"), 0, 0);
+        grid.add(passwordField, 1, 0);
+        grid.add(new Label("Passwort bestätigen:"), 0, 1);
+        grid.add(confirmPasswordField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Fokus auf das Passwortfeld setzen
+        Platform.runLater(() -> passwordField.requestFocus());
+
+        // Bestätigen-Button deaktivieren, bis Passwörter übereinstimmen
+        Button confirmButton = (Button) dialog.getDialogPane().lookupButton(confirmButtonType);
+        confirmButton.setDisable(true);
+
+        // Passwortvalidierung
+        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            confirmButton.setDisable(newValue.trim().isEmpty() || 
+                                     !newValue.equals(confirmPasswordField.getText()));
+        });
+
+        confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            confirmButton.setDisable(newValue.trim().isEmpty() || 
+                                     !newValue.equals(passwordField.getText()));
+        });
+
+        // Ergebnis konvertieren
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == confirmButtonType) {
+                return passwordField.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(newPassword -> {
+            try {
+                System.out.println("Neues Passwort wird gesetzt für: " + selectedItem.getFullName());
+                System.out.println("Vorher: Caregiver-ID: " + selectedItem.getCid() + ", Username: " + selectedItem.getUsername());
+
+                    System.out.println("Starte Passwortänderung für Caregiver ID: " + selectedItem.getCid());
+
+                    // Verbindung zur Datenbank herstellen
+                    Connection conn = ConnectionBuilder.getConnection();
+
+                    // Passwort verschlüsseln
+                    String encryptedPassword = de.hitec.nhplus.utils.PasswordUtils.hashPassword(newPassword);
+
+                    // WICHTIG: Wir aktualisieren nur das Passwort in der users-Tabelle, nicht in caregiver
+                    // Suche zuerst den zugehörigen Benutzer in users
+                    String findUserSql = "SELECT uid, username FROM users WHERE caregiver_id = ?";
+                    PreparedStatement findPs = conn.prepareStatement(findUserSql);
+                    findPs.setLong(1, selectedItem.getCid());
+
+                    ResultSet rs = findPs.executeQuery();
+                    if (rs.next()) {
+                        long userId = rs.getLong("uid");
+                        String username = rs.getString("username");
+
+                        // Passwort in der users-Tabelle aktualisieren
+                        String updateUserSql = "UPDATE users SET password = ? WHERE uid = ?";
+                        PreparedStatement updatePs = conn.prepareStatement(updateUserSql);
+                        updatePs.setString(1, encryptedPassword);
+                        updatePs.setLong(2, userId);
+
+                        int userRowsAffected = updatePs.executeUpdate();
+                        updatePs.close();
+
+                        System.out.println("Passwort für Benutzeraccount '" + username + "' aktualisiert. Betroffene Zeilen: " + userRowsAffected);
+                    } else {
+                        System.out.println("Kein zugehöriger Benutzeraccount für Caregiver ID " + selectedItem.getCid() + " gefunden.");
+                    }
+
+                    rs.close();
+                    findPs.close();
+
+                    // Lokales Objekt aktualisieren
+                    selectedItem.setPassword(encryptedPassword);
+
+                    // Lokales Objekt aktualisieren
+                    selectedItem.setPassword(encryptedPassword);
+
+                // Wir aktualisieren nicht mehr den zugehörigen Benutzer hier, da dies bereits oben geschehen ist
+                try {
+                    // Verbindung schließen
+                    if (conn != null && !conn.isClosed()) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Fehler beim Aktualisieren des zugehörigen Benutzeraccounts: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Passwort geändert");
+                successAlert.setHeaderText("Passwort erfolgreich geändert");
+                successAlert.setContentText("Das Passwort für " + selectedItem.getFullName() + " wurde erfolgreich aktualisiert.");
+                successAlert.showAndWait();
+
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Datenbankfehler");
+                errorAlert.setHeaderText("Fehler beim Ändern des Passworts");
+                errorAlert.setContentText("Das Passwort konnte nicht geändert werden: " + exception.getMessage());
+                errorAlert.showAndWait();
+            }
+        });
     }
 
     /**

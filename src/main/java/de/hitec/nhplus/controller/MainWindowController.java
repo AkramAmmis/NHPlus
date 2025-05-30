@@ -2,6 +2,7 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.Main;
 import de.hitec.nhplus.utils.AuthorizationManager;
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,6 +11,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Duration;
 
 import java.io.IOException;
 
@@ -20,6 +24,9 @@ public class MainWindowController {
 
     private Stage primaryStage;
     private Main main;
+
+    private PauseTransition inactivityTimer;
+    private static final int INACTIVITY_MINUTES = 1;
 
     /**
      * Setzt die Hauptanwendung
@@ -63,9 +70,41 @@ public class MainWindowController {
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
             primaryStage.show();
+
+            // Inaktivitäts-Timer initialisieren
+            setupInactivityTimer(scene);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupInactivityTimer(Scene scene) {
+        inactivityTimer = new PauseTransition(Duration.minutes(INACTIVITY_MINUTES));
+        inactivityTimer.setOnFinished(e -> handleAutoLogout());
+        scene.addEventFilter(MouseEvent.ANY, e -> resetInactivityTimer());
+        scene.addEventFilter(KeyEvent.ANY, e -> resetInactivityTimer());
+        resetInactivityTimer();
+    }
+
+    private void resetInactivityTimer() {
+        if (inactivityTimer != null) {
+            inactivityTimer.stop();
+            inactivityTimer.playFromStart();
+        }
+    }
+
+    private void handleAutoLogout() {
+        AuthorizationManager.getInstance().logout();
+        if (main != null) {
+            main.showLoginView();
+        } else if (primaryStage != null) {
+            new de.hitec.nhplus.gui.LoginView(primaryStage, this);
+        }
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Automatische Abmeldung");
+        alert.setHeaderText(null);
+        alert.setContentText("Sie wurden nach 15 Minuten Inaktivität automatisch abgemeldet.");
+        alert.showAndWait();
     }
 
     /**

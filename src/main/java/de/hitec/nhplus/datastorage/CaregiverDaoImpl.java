@@ -166,13 +166,12 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             // Wenn das Passwort bereits in der DB existiert und nicht geändert wurde, ist es bereits verschlüsselt
             // Andernfalls müssen wir es neu verschlüsseln
             String currentPasswordInDb = getPasswordFromDatabase(caregiver.getCid());
-            if (currentPasswordInDb != null && currentPasswordInDb.equals(caregiver.getPassword())) {
-                // Das Passwort wurde nicht geändert - verwende es wie es ist
-                preparedStatement.setString(2, caregiver.getPassword());
-            } else {
-                // Das Passwort wurde geändert oder ist neu - verschlüsseln
-                preparedStatement.setString(2, encryptPassword(caregiver.getPassword()));
-            }
+            System.out.println("Aktuelles Passwort in DB: " + (currentPasswordInDb != null ? "[verschlüsselt]" : "null"));
+            System.out.println("Neues Passwort: " + (caregiver.getPassword() != null ? "[vorhanden]" : "null"));
+
+            // Immer verschlüsseln, wenn ein neues Passwort gesetzt wird
+            preparedStatement.setString(2, encryptPassword(caregiver.getPassword()));
+            System.out.println("Passwort wurde verschlüsselt und wird aktualisiert.");
 
             preparedStatement.setString(3, caregiver.getFirstName());
             preparedStatement.setString(4, caregiver.getSurname());
