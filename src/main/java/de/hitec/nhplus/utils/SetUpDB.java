@@ -51,19 +51,7 @@ public class SetUpDB {
         }
 
     }
-    private static void setUpTableCaregiver(Connection connection) {
-        final String SQL = "CREATE TABLE IF NOT EXISTS caregiver (" +
-                "   cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "   firstname TEXT NOT NULL, " +
-                "   surname TEXT NOT NULL, " +
-                "   telephone TEXT NOT NULL" +
-                ");";
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(SQL);
-        } catch (SQLException exception) {
-            System.out.println(exception.getMessage());
-        }
-    }
+
     private static void setUpTableCaregiver(Connection connection) {
         final String SQL = "CREATE TABLE IF NOT EXISTS caregiver (" +
                 "   cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -83,6 +71,7 @@ public class SetUpDB {
             System.out.println(exception.getMessage());
         }
     }
+
     private static void setUpTableTreatment(Connection connection) {
         final String SQL = "CREATE TABLE IF NOT EXISTS treatment (" +
                 "   tid INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -122,9 +111,11 @@ public class SetUpDB {
     private static void setUpCaregivers() {
         try {
             CaregiverDao dao = DaoFactory.getDaoFactory().createCaregiverDAO();
-            dao.create(new Caregiver("Hans", "Neumann", "0123456789"));
-            dao.create(new Caregiver("Luise", "Neubauer", "02314457893"));
-            dao.create(new Caregiver("Jonas", "Meyer", "0173228845"));
+
+            // Neue Caregiver-Instanzen mit Username und Passwort erstellen
+            dao.create(new Caregiver(0, "hneumann", "password123", "Hans", "Neumann", "0123456789"));
+            dao.create(new Caregiver(0, "lneubauer", "password123", "Luise", "Neubauer", "02314457893"));
+            dao.create(new Caregiver(0, "jmeyer", "password123", "Jonas", "Meyer", "0173228845"));
 
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -152,4 +143,5 @@ public class SetUpDB {
     public static void main(String[] args) {
         SetUpDB.setUpDb();
     }
+
 }
