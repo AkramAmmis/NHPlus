@@ -2,7 +2,6 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.ConnectionBuilder;
-import de.hitec.nhplus.datastorage.ConnectionBuilder;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.UserDao;
 import de.hitec.nhplus.model.Caregiver;
@@ -38,6 +37,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 
 // SQL-Importe
@@ -90,6 +90,7 @@ public class AllCaregiverController {
 
     private final ObservableList<Caregiver> caregivers = FXCollections.observableArrayList();
     private CaregiverDao dao;
+    private Stage primaryStage; // Add stage reference
 
     /**
      * When <code>initialize()</code> gets called, all fields are already initialized. For example from the FXMLLoader
@@ -1063,28 +1064,46 @@ public class AllCaregiverController {
         AuthorizationManager.getInstance().logout();
 
         try {
-            // Login-Fenster anzeigen
-            javafx.stage.Stage currentStage = (javafx.stage.Stage) tableView.getScene().getWindow();
+            Stage currentStage = null;
+            
+            // Try multiple approaches to get the stage
+            if (primaryStage != null) {
+                currentStage = primaryStage;
+            } else if (tableView != null && tableView.getScene() != null && tableView.getScene().getWindow() instanceof Stage) {
+                currentStage = (Stage) tableView.getScene().getWindow();
+            } else if (event.getSource() instanceof javafx.scene.Node) {
+                javafx.scene.Node source = (javafx.scene.Node) event.getSource();
+                if (source.getScene() != null && source.getScene().getWindow() instanceof Stage) {
+                    currentStage = (Stage) source.getScene().getWindow();
+                }
+            }
 
-            // MainWindowController mit korrekter Stage erstellen
-            MainWindowController newMainController = new MainWindowController();
-            newMainController.setPrimaryStage(currentStage);
+            if (currentStage != null) {
+                // MainWindowController mit korrekter Stage erstellen
+                MainWindowController newMainController = new MainWindowController();
+                newMainController.setPrimaryStage(currentStage);
 
-            // Login-Fenster mit der LoginView-Klasse erstellen
-            new de.hitec.nhplus.gui.LoginView(currentStage, newMainController);
+                // Login-Fenster mit der LoginView-Klasse erstellen
+                new de.hitec.nhplus.gui.LoginView(currentStage, newMainController);
+            } else {
+                System.err.println("Konnte keine gültige Stage finden. Verwende Platform.exit().");
+                Platform.exit();
+            }
 
         } catch (Exception e) {
             System.err.println("Fehler beim Anzeigen des Login-Fensters: " + e.getMessage());
             e.printStackTrace();
 
-            // Fallback: Aktuelle Anwendung schließen
-            try {
-                javafx.stage.Stage stage = (javafx.stage.Stage) tableView.getScene().getWindow();
-                stage.close();
-            } catch (Exception ex) {
-                System.err.println("Fehler beim Schließen des Fensters: " + ex.getMessage());
-                ex.printStackTrace();
-            }
+            // Fallback: Anwendung beenden
+            Platform.exit();
         }
+    }
+
+    /**
+     * Sets the primary stage reference for window operations
+     * @param primaryStage The primary stage
+     */
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
     }
 }

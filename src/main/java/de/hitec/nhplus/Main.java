@@ -88,10 +88,14 @@ public class Main extends Application {
             }
 
             Scene scene = new Scene(pane);
-            this.primaryStage.setTitle(title);
-            this.primaryStage.setScene(scene);
-            this.primaryStage.setResizable(true);
-            this.primaryStage.show();
+            
+            // Use Platform.runLater to ensure proper thread handling
+            Platform.runLater(() -> {
+                this.primaryStage.setTitle(title);
+                this.primaryStage.setScene(scene);
+                this.primaryStage.setResizable(true);
+                this.primaryStage.show();
+            });
 
             this.primaryStage.setOnCloseRequest(event -> {
                 ConnectionBuilder.closeConnection();
@@ -101,6 +105,25 @@ public class Main extends Application {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * Returns the primary stage for window operations
+     * @return the primary stage
+     */
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
+    }
+    
+    /**
+     * Handles logout and returns to login view
+     */
+    public void handleLogout() {
+        Platform.runLater(() -> {
+            // Clear current scene and show login
+            AuthorizationManager.getInstance().logout();
+            showLoginView();
+        });
     }
 
     public static void main(String[] args) {

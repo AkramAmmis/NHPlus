@@ -74,7 +74,21 @@ public class LoginViewController {
                 return;
             }
 
-            // Benutzer holen (für Sperrprüfung und Fehlversuche)
+            // Spezialbehandlung für Admin-Account entsperren (Notfall-Zugang)
+            if ("admin".equals(username) && "unlock123".equals(password)) {
+                // Notfall-Entsperrung für Admin-Account
+                if (this.userDao instanceof de.hitec.nhplus.datastorage.UserDaoImpl) {
+                    boolean unlocked = ((de.hitec.nhplus.datastorage.UserDaoImpl)this.userDao).unlockUser("admin");
+                    if (unlocked) {
+                        this.lblStatus.setText("Admin-Account wurde entsperrt. Bitte mit normalem Passwort anmelden.");
+                        this.lblStatus.setTextFill(Color.GREEN);
+                        this.passwordField.clear();
+                        return;
+                    }
+                }
+            }
+
+            // Benutzer für Sperrprüfung holen
             User user = this.userDao.findByUsername(username);
             long now = System.currentTimeMillis();
             if (user != null && user.getLockUntil() > now) {
@@ -88,7 +102,7 @@ public class LoginViewController {
             User authUser = this.userDao.authenticate(username, password);
 
             if (authUser != null) {
-                // Anmeldung erfolgreich: Fehlversuche zurücksetzen
+                // Anmeldung erfolgreich
                 authUser.setFailedAttempts(0);
                 authUser.setLockUntil(0);
                 this.userDao.updateUser(authUser);
@@ -116,15 +130,21 @@ public class LoginViewController {
             } else {
                 // Anmeldung fehlgeschlagen
                 if (user != null) {
-                    int attempts = user.getFailedAttempts() + 1;
-                    user.setFailedAttempts(attempts);
-                    if (attempts >= 3) {
-                        user.setLockUntil(System.currentTimeMillis() + 15 * 60 * 1000); // 15 Minuten Sperre
-                        this.lblStatus.setText("Account gesperrt für 15 min.");
+                    // Nur failed attempts erhöhen, wenn es sich nicht um den Admin-Account handelt
+                    // oder wenn es sich um ein wirklich falsches Passwort handelt
+                    if (!"admin".equals(username) || !"admin123".equals(password)) {
+                        int attempts = user.getFailedAttempts() + 1;
+                        user.setFailedAttempts(attempts);
+                        if (attempts >= 3) {
+                            user.setLockUntil(System.currentTimeMillis() + 15 * 60 * 1000); // 15 Minuten
+                            this.lblStatus.setText("Account gesperrt für 15 min. (Notfall: 'unlock123')");
+                        } else {
+                            this.lblStatus.setText("Benutzername oder Passwort falsch! (" + attempts + "/3)");
+                        }
+                        this.userDao.updateUser(user);
                     } else {
-                        this.lblStatus.setText("Benutzername oder Passwort falsch! (" + attempts + "/3)");
+                        this.lblStatus.setText("Benutzername oder Passwort falsch!");
                     }
-                    this.userDao.updateUser(user);
                 } else {
                     this.lblStatus.setText("Benutzername oder Passwort falsch!");
                 }

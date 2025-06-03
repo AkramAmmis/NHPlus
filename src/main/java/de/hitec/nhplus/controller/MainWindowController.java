@@ -3,6 +3,7 @@ package de.hitec.nhplus.controller;
 import de.hitec.nhplus.Main;
 import de.hitec.nhplus.utils.AuthorizationManager;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -26,7 +27,7 @@ public class MainWindowController {
     private Main main;
 
     private PauseTransition inactivityTimer;
-    private static final int INACTIVITY_MINUTES = 1;
+    private static final int INACTIVITY_MINUTES = 15;
 
     /**
      * Setzt die Hauptanwendung
@@ -100,11 +101,15 @@ public class MainWindowController {
         } else if (primaryStage != null) {
             new de.hitec.nhplus.gui.LoginView(primaryStage, this);
         }
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Automatische Abmeldung");
-        alert.setHeaderText(null);
-        alert.setContentText("Sie wurden nach 15 Minuten Inaktivität automatisch abgemeldet.");
-        alert.showAndWait();
+        
+        // Use Platform.runLater to avoid showAndWait during animation
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Automatische Abmeldung");
+            alert.setHeaderText(null);
+            alert.setContentText("Sie wurden nach 15 Minuten Inaktivität automatisch abgemeldet.");
+            alert.showAndWait();
+        });
     }
 
     /**
