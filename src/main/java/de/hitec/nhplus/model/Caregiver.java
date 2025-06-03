@@ -1,5 +1,7 @@
 package de.hitec.nhplus.model;
 
+import java.time.LocalDate;
+
 /**
  * Represents a caregiver.
  */
@@ -8,6 +10,7 @@ public class Caregiver {
     private String firstName;
     private String surname;
     private String telephone;
+
 
     /**
      * Constructor for creating a new caregiver without an ID (e.g., before saving to the database).
@@ -33,6 +36,8 @@ public class Caregiver {
         this.firstName = firstName;
         this.surname = surname;
         this.telephone = telephone;
+
+
     }
 
     public long getCid() {
@@ -62,6 +67,7 @@ public class Caregiver {
     public void setTelephone(String telephone) {
         this.telephone = telephone;
     }
+
 
     @Override
     public String toString() {

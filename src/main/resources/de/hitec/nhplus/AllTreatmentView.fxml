@@ -18,10 +18,11 @@
       <TableView fx:id="tableView" editable="true" layoutX="31.0" layoutY="35.0" onMouseClicked="#handleMouseClick" prefHeight="364.0" prefWidth="825.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="80.0">
         <columns>
             <TableColumn fx:id="columnId" maxWidth="-1.0" minWidth="40.0" prefWidth="50.0" text="ID" />
-            <TableColumn fx:id="columnPid" maxWidth="-1.0" minWidth="100.0" prefWidth="120.0" text="PatientID" />
-          <TableColumn fx:id="columnDate" maxWidth="-1.0" minWidth="140.0" prefWidth="150.0" text="Datum" />
-          <TableColumn fx:id="columnBegin" maxWidth="-1.0" minWidth="140.0" prefWidth="150.0" text="Beginn" />
-            <TableColumn fx:id="columnEnd" maxWidth="-1.0" minWidth="140.0" prefWidth="150.0" text="Ende" />
+            <TableColumn fx:id="columnPid" maxWidth="-1.0" minWidth="40.0" prefWidth="50.0" text="PID" />
+          <TableColumn fx:id="columnDate" maxWidth="-1.0" minWidth="150.0" prefWidth="170.0" text="Datum" />
+          <TableColumn fx:id="columnBegin" maxWidth="-1.0" minWidth="150.0" prefWidth="170.0" text="Beginn" />
+            <TableColumn fx:id="columnEnd" maxWidth="-1.0" minWidth="150.0" prefWidth="170.0" text="Ende" />
+            <TableColumn fx:id="columnCid" maxWidth="-1.0" minWidth="40.0" prefWidth="50.0" text="CID" />
             <TableColumn fx:id="columnDescription" maxWidth="-1.0" minWidth="200.0" prefWidth="300.0" text="Kurzbeschreibung" />
         </columns>
          <columnResizePolicy>
@@ -41,7 +42,7 @@
               </rowConstraints>
                <children>
                   <Button fx:id="buttonNewTreament" mnemonicParsing="false" onAction="#handleNewTreatment" prefWidth="200.0" text="neue Behandlung anlegen" GridPane.columnIndex="1" />
-                  <ComboBox fx:id="comboBoxPatientSelection" minWidth="160.0" onAction="#handleComboBox" prefWidth="200.0" />
+                   <ComboBox fx:id="comboBoxPatientSelection" minWidth="160.0" onAction="#handlePatientComboBox" prefWidth="200.0" GridPane.columnIndex="0"/>
                   <Button fx:id="buttonDelete" mnemonicParsing="false" onAction="#handleDelete" prefWidth="200.0" text="Löschen" GridPane.columnIndex="2" />
                </children>
                <padding>

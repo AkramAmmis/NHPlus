@@ -1,6 +1,5 @@
 package de.hitec.nhplus.controller;
 
-import com.sun.javafx.charts.Legend;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import javafx.beans.value.ChangeListener;
@@ -72,7 +71,7 @@ public class AllPatientController {
 
     private final ObservableList<Patient> patients = FXCollections.observableArrayList();
     private PatientDao dao;
-    private Legend.LegendItem textFieldTelephone;
+    private TextField textFieldTelephone;
 
     /**
      * When <code>initialize()</code> gets called, all fields are already initialized. For example from the FXMLLoader
