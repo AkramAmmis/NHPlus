@@ -4,6 +4,7 @@ import de.hitec.nhplus.controller.MainWindowController;
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.ConnectionBuilder;
 import de.hitec.nhplus.datastorage.DaoFactory;
+import de.hitec.nhplus.datastorage.DatabaseInitializer;
 import de.hitec.nhplus.gui.LoginView;
 import de.hitec.nhplus.utils.AuthorizationManager;
 
@@ -63,14 +64,9 @@ public class Main extends Application {
 
           
             try {
-              
-                DaoFactory.getDaoFactory().createUserDAO().createTable();
-                System.out.println("Benutzer-Tabelle initialisiert.");
-
-               
-                CaregiverDao caregiverDao = DaoFactory.getDaoFactory().createCaregiverDAO();
-                caregiverDao.createTable();
-                System.out.println("Pfleger-Tabelle initialisiert.");
+                // Use DatabaseInitializer to ensure all required tables are created
+                DatabaseInitializer.initializeDatabase();
+                System.out.println("Alle Tabellen wurden initialisiert.");
             } catch (Exception e) {
                 System.err.println("Fehler bei der Tabelleninitialisierung: " + e.getMessage());
                 e.printStackTrace();

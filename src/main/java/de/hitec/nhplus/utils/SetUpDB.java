@@ -20,6 +20,7 @@ public class SetUpDB {
         Connection connection = ConnectionBuilder.getConnection();
         SetUpDB.wipeDb(connection);
         SetUpDB.setUpTablePatient(connection);
+        SetUpDB.setUpTableCaregiver(connection);
         SetUpDB.setUpTableTreatment(connection);
         SetUpDB.setUpPatients();
         SetUpDB.setUpTreatments();
@@ -27,8 +28,9 @@ public class SetUpDB {
 
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("DROP TABLE patient");
-            statement.execute("DROP TABLE treatment");
+            statement.execute("DROP TABLE IF EXISTS treatment");
+            statement.execute("DROP TABLE IF EXISTS patient");
+            statement.execute("DROP TABLE IF EXISTS caregiver");
         } catch (SQLException exception) {
             System.out.println(exception.getMessage());
         }
@@ -49,7 +51,25 @@ public class SetUpDB {
             System.out.println(exception.getMessage());
         }
     }
-
+    private static void setUpTableCaregiver(Connection connection) {
+        final String SQL = "CREATE TABLE IF NOT EXISTS caregiver (" +
+                "   cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "   firstname TEXT NOT NULL, " +
+                "   surname TEXT NOT NULL, " +
+                "   username TEXT UNIQUE NOT NULL, " +
+                "   password TEXT NOT NULL, " +
+                "   role TEXT NOT NULL DEFAULT 'USER', " +
+                "   locked BOOLEAN DEFAULT 0, " +
+                "   failed_attempts INTEGER DEFAULT 0, " +
+                "   last_failed_attempt DATETIME, " +
+                "   telephone TEXT NOT NULL " +
+                ");";
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(SQL);
+        } catch (SQLException exception) {
+            System.out.println(exception.getMessage());
+        }
+    }
     private static void setUpTableTreatment(Connection connection) {
         final String SQL = "CREATE TABLE IF NOT EXISTS treatment (" +
                 "   tid INTEGER PRIMARY KEY AUTOINCREMENT, " +
