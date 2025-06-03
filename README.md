@@ -3,12 +3,6 @@ Ein vorkonfigurierter Admin-Zugang ist für Entwicklungs- und Testzwecke vorhand
 - **Benutzername:** `admin`
 - **Passwort:** `admin123`
 
-# Pflege-Login-System
-
-Dieses Modul implementiert ein sicheres Login-System für Pflegekräfte. Ziel ist es, die Zugriffe auf die Anwendung kontrolliert, nachvollziehbar und benutzerfreundlich zu gestalten.
-
----
-
 ## 🔐 Features
 
 - Benutzerbezogene Logins für Pflegekräfte
@@ -25,12 +19,12 @@ Dieses Modul implementiert ein sicheres Login-System für Pflegekräfte. Ziel is
 
 | Code | Beschreibung                                            |
 | ---- | ------------------------------------------------------- |
-| A_1  | Jeder Pfleger hat eigene Login-Daten                    |
-| A_2  | Passwörter werden verschlüsselt gespeichert             |
-| A_3  | Nach 3 Fehlversuchen wird der Account temporär gesperrt |
-| A_4  | Automatische Abmeldung nach 15 Minuten Inaktivität      |
-| A_5  | Protokollierung aller Login-Versuche                    |
-| A_6  | Möglichkeit zur sicheren Passwortänderung               |
+| 1    | Jeder Pfleger hat eigene Login-Daten                    |
+| 2    | Passwörter werden verschlüsselt gespeichert             |
+| 3    | Nach 3 Fehlversuchen wird der Account temporär gesperrt |
+| 4    | Automatische Abmeldung nach 15 Minuten Inaktivität      |
+| 5    | Protokollierung aller Login-Versuche                    |
+| 6    | Möglichkeit zur sicheren Passwortänderung               |
 
 ---
 
