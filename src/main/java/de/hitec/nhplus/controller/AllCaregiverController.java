@@ -1,3 +1,4 @@
+
 package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.CaregiverDao;
@@ -8,6 +9,8 @@ import de.hitec.nhplus.model.Caregiver;
 import de.hitec.nhplus.model.User;
 import de.hitec.nhplus.model.UserRole;
 import de.hitec.nhplus.utils.AuthorizationManager;
+import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.model.Treatment;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -47,6 +50,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Statement;
 import java.util.Optional;
+import java.util.List;
 
 public class AllCaregiverController {
     @FXML
@@ -395,6 +399,23 @@ public class AllCaregiverController {
                                        selectedItem.getSurname() + " wirklich löschen?");
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
+              TreatmentDao treatmentDao = DaoFactory.getDaoFactory().createTreatmentDao();
+                List<Treatment> activeTreatments = treatmentDao.readTreatmentsByCid(selectedItem.getCid());
+
+                if (!activeTreatments.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Warnung");
+                    alert.setHeaderText("Pfleger hat aktive Behandlungen");
+                    alert.setContentText("Der Pfleger ist mit " + activeTreatments.size() +
+                            " Behandlungen verknüpft. Sie können den Pfleger noch nicht löschen?");
+
+                    ButtonType buttonTypeOk = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(buttonTypeOk);
+
+                    Optional<ButtonType> secResult = alert.showAndWait();
+                    if (result.isPresent() && secResult.get() == buttonTypeOk) {
+                        return;
+                    }
                 try {
                     DaoFactory.getDaoFactory().createCaregiverDAO().deleteById(selectedItem.getCid());
                     this.tableView.getItems().remove(selectedItem);
@@ -885,4 +906,5 @@ public class AllCaregiverController {
             System.err.println("Fehler beim Synchronisieren des User-Benutzernamens: " + e.getMessage());
         }
     }
+
 }

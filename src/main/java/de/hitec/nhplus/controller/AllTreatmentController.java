@@ -1,9 +1,11 @@
 package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.Main;
+import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.model.Caregiver;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -19,6 +21,7 @@ import de.hitec.nhplus.model.Treatment;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AllTreatmentController {
 
@@ -29,7 +32,10 @@ public class AllTreatmentController {
     private TableColumn<Treatment, Integer> columnId;
 
     @FXML
-    private TableColumn<Treatment, Integer> columnPid;
+    private TableColumn<Treatment, String> columnPid;
+
+    @FXML
+    private TableColumn<Treatment, String> columnCid;
 
     @FXML
     private TableColumn<Treatment, String> columnDate;
@@ -54,13 +60,16 @@ public class AllTreatmentController {
     private final ObservableList<String> patientSelection = FXCollections.observableArrayList();
     private ArrayList<Patient> patientList;
 
+
     public void initialize() {
         readAllAndShowInTableView();
         comboBoxPatientSelection.setItems(patientSelection);
         comboBoxPatientSelection.getSelectionModel().select(0);
 
+
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("tid"));
         this.columnPid.setCellValueFactory(new PropertyValueFactory<>("pid"));
+        this.columnCid.setCellValueFactory(new PropertyValueFactory<>("cid"));
         this.columnDate.setCellValueFactory(new PropertyValueFactory<>("date"));
         this.columnBegin.setCellValueFactory(new PropertyValueFactory<>("begin"));
         this.columnEnd.setCellValueFactory(new PropertyValueFactory<>("end"));
@@ -72,7 +81,7 @@ public class AllTreatmentController {
                 (observableValue, oldTreatment, newTreatment) ->
                         AllTreatmentController.this.buttonDelete.setDisable(newTreatment == null));
 
-        this.createComboBoxData();
+        this.createPatientComboBoxData();
     }
 
     public void readAllAndShowInTableView() {
@@ -80,13 +89,14 @@ public class AllTreatmentController {
         comboBoxPatientSelection.getSelectionModel().select(0);
         this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
         try {
-            this.treatments.addAll(dao.readAll());
+            List<Treatment> treatmentList = dao.readAll();
+            this.treatments.setAll(treatmentList);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
     }
 
-    private void createComboBoxData() {
+    private void createPatientComboBoxData() {
         PatientDao dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
             patientList = (ArrayList<Patient>) dao.readAll();
@@ -101,7 +111,7 @@ public class AllTreatmentController {
 
 
     @FXML
-    public void handleComboBox() {
+    public void handlePatientComboBox() {
         String selectedPatient = this.comboBoxPatientSelection.getSelectionModel().getSelectedItem();
         this.treatments.clear();
         this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
@@ -114,7 +124,7 @@ public class AllTreatmentController {
             }
         }
 
-        Patient patient = searchInList(selectedPatient);
+        Patient patient = searchInPatientList(selectedPatient);
         if (patient !=null) {
             try {
                 this.treatments.addAll(this.dao.readTreatmentsByPid(patient.getPid()));
@@ -124,7 +134,8 @@ public class AllTreatmentController {
         }
     }
 
-    private Patient searchInList(String surname) {
+
+    private Patient searchInPatientList(String surname) {
         for (Patient patient : this.patientList) {
             if (patient.getSurname().equals(surname)) {
                 return patient;
@@ -149,7 +160,7 @@ public class AllTreatmentController {
     public void handleNewTreatment() {
         try{
             String selectedPatient = this.comboBoxPatientSelection.getSelectionModel().getSelectedItem();
-            Patient patient = searchInList(selectedPatient);
+            Patient patient = searchInPatientList(selectedPatient);
             newTreatmentWindow(patient);
         } catch (NullPointerException exception){
             Alert alert = new Alert(Alert.AlertType.INFORMATION);

@@ -50,6 +50,8 @@ public class AllPatientController {
     private TextField textFieldRoomNumber;
     private final ObservableList<Patient> patients = FXCollections.observableArrayList();
     private PatientDao dao;
+    private TextField textFieldTelephone;
+
 
     public void initialize() {
         this.readAllAndShowInTableView();
