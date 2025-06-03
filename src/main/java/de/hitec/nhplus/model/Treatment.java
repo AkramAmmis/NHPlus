@@ -18,19 +18,20 @@ public class Treatment {
     private String description;
     private String remarks;
 
+
     /**
      * Constructor to initiate an object of class <code>Treatment</code> with the given parameter. Use this constructor
      * to initiate objects, which are not persisted yet, because it will not have a treatment id (tid).
      *
      * @param pid         Id of the treated patient.
+     * @param cid         Id of the caregiver.
      * @param date        Date of the Treatment.
      * @param begin       Time of the start of the treatment in format "hh:MM"
      * @param end         Time of the end of the treatment in format "hh:MM".
      * @param description Description of the treatment.
      * @param remarks     Remarks to the treatment.
      */
-    public Treatment(long pid, long cid, LocalDate date, LocalTime begin,
-                     LocalTime end, String description, String remarks) {
+    public Treatment(long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
         this.pid = pid;
         this.cid = cid;
         this.date = date;
@@ -40,20 +41,21 @@ public class Treatment {
         this.remarks = remarks;
     }
 
+
     /**
      * Constructor to initiate an object of class <code>Treatment</code> with the given parameter. Use this constructor
      * to initiate objects, which are already persisted and have a treatment id (tid).
      *
      * @param tid         Id of the treatment.
      * @param pid         Id of the treated patient.
+     * @param cid         Id of the caregiver.
      * @param date        Date of the Treatment.
      * @param begin       Time of the start of the treatment in format "hh:MM"
      * @param end         Time of the end of the treatment in format "hh:MM".
      * @param description Description of the treatment.
      * @param remarks     Remarks to the treatment.
      */
-    public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin,
-                     LocalTime end, String description, String remarks) {
+    public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
         this.tid = tid;
         this.pid = pid;
         this.cid = cid;

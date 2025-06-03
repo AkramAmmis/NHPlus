@@ -1,6 +1,12 @@
 package de.hitec.nhplus;
 
+import de.hitec.nhplus.controller.MainWindowController;
+import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.ConnectionBuilder;
+import de.hitec.nhplus.datastorage.DaoFactory;
+import de.hitec.nhplus.datastorage.DatabaseInitializer;
+import de.hitec.nhplus.gui.LoginView;
+import de.hitec.nhplus.utils.AuthorizationManager;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -18,7 +24,32 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        mainWindow();
+
+     
+        if (AuthorizationManager.getInstance().isLoggedOut()) {
+    
+            showLoginView();
+        } else {
+     
+            mainWindow();
+        }
+    }
+
+    public void showLoginView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/MainWindowView.fxml"));
+            BorderPane dummy = loader.load();
+
+            MainWindowController mainController = loader.getController();
+            mainController.setMain(this);
+            mainController.setPrimaryStage(primaryStage);
+
+           
+            Stage loginStage = new Stage();
+            new LoginView(loginStage, mainController);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void mainWindow() {
@@ -26,10 +57,32 @@ public class Main extends Application {
             FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/MainWindowView.fxml"));
             BorderPane pane = loader.load();
 
+           
+            MainWindowController controller = loader.getController();
+            controller.setMain(this);
+            controller.setPrimaryStage(this.primaryStage);
+
+          
+            try {
+                // Use DatabaseInitializer to ensure all required tables are created
+                DatabaseInitializer.initializeDatabase();
+                System.out.println("Alle Tabellen wurden initialisiert.");
+            } catch (Exception e) {
+                System.err.println("Fehler bei der Tabelleninitialisierung: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+       
+            String title = "NHPlus";
+            if (!AuthorizationManager.getInstance().isLoggedOut()) {
+                title += " - Angemeldet als " + 
+                    AuthorizationManager.getInstance().getCurrentUser().getFullName();
+            }
+
             Scene scene = new Scene(pane);
-            this.primaryStage.setTitle("NHPlus");
+            this.primaryStage.setTitle(title);
             this.primaryStage.setScene(scene);
-            this.primaryStage.setResizable(false);
+            this.primaryStage.setResizable(true);
             this.primaryStage.show();
 
             this.primaryStage.setOnCloseRequest(event -> {
@@ -40,6 +93,25 @@ public class Main extends Application {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * Returns the primary stage for window operations
+     * @return the primary stage
+     */
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
+    }
+    
+    /**
+     * Handles logout and returns to login view
+     */
+    public void handleLogout() {
+        Platform.runLater(() -> {
+            // Clear current scene and show login
+            AuthorizationManager.getInstance().logout();
+            showLoginView();
+        });
     }
 
     public static void main(String[] args) {
