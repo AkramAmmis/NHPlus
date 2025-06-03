@@ -22,7 +22,7 @@ public class AccountLockService {
         long minutesSinceLock = ChronoUnit.MINUTES.between(lockTime, now);
         
         if (minutesSinceLock >= LOCKOUT_DURATION_MINUTES) {
-            // Sperrung aufheben
+      
             unlockAccount(username);
             System.out.println("DEBUG: Account " + username + " wurde automatisch entsperrt nach " + minutesSinceLock + " Minuten");
             return false;
@@ -44,7 +44,6 @@ public class AccountLockService {
     }
     
     public void recordSuccessfulLogin(String username) {
-        // Zurücksetzen der fehlgeschlagenen Versuche bei erfolgreichem Login
         failedAttempts.remove(username);
         lockoutTime.remove(username);
         System.out.println("DEBUG: Erfolgreicher Login für " + username + " - Sperr-Zähler zurückgesetzt");

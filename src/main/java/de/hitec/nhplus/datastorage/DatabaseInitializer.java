@@ -12,13 +12,10 @@ public class DatabaseInitializer {
             
             System.out.println("Initialisiere Datenbank-Tabellen...");
             
-            // Caregiver Tabelle erstellen falls nicht vorhanden
             createCaregiverTable(statement);
             
-            // User Tabelle erstellen falls nicht vorhanden  
             createUserTable(statement);
             
-            // Login Log Tabelle erstellen falls nicht vorhanden
             createLoginLogTable(statement);
             
             System.out.println("Datenbank-Tabellen erfolgreich initialisiert.");
@@ -37,16 +34,28 @@ public class DatabaseInitializer {
                 surname TEXT NOT NULL,
                 telephone TEXT,
                 locked BOOLEAN DEFAULT 0,
-                archived BOOLEAN DEFAULT 0
+                archived BOOLEAN DEFAULT 0,
+                user_id INTEGER,
+                FOREIGN KEY (user_id) REFERENCES users(uid)
             )
             """;
         statement.execute(createCaregiverTable);
+        
+        try {
+            statement.execute("ALTER TABLE caregiver ADD COLUMN user_id INTEGER");
+            System.out.println("user_id Spalte zur Caregiver-Tabelle hinzugefügt.");
+        } catch (SQLException e) {
+            if (!e.getMessage().contains("duplicate column")) {
+                System.out.println("user_id Spalte existiert bereits in Caregiver-Tabelle.");
+            }
+        }
+        
         System.out.println("Caregiver-Tabelle überprüft/erstellt.");
     }
     
     private static void createUserTable(Statement statement) throws SQLException {
         String createUserTable = """
-            CREATE TABLE IF NOT EXISTS user (
+            CREATE TABLE IF NOT EXISTS users (
                 uid INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
@@ -58,7 +67,7 @@ public class DatabaseInitializer {
             )
             """;
         statement.execute(createUserTable);
-        System.out.println("User-Tabelle überprüft/erstellt.");
+        System.out.println("Users-Tabelle überprüft/erstellt.");
     }
     
     private static void createLoginLogTable(Statement statement) throws SQLException {

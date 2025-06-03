@@ -67,7 +67,6 @@ public class AllTreatmentController {
         this.columnDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         this.tableView.setItems(this.treatments);
 
-        // Disabling the button to delete treatments as long, as no treatment was selected.
         this.buttonDelete.setDisable(true);
         this.tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTreatment, newTreatment) ->
@@ -178,7 +177,6 @@ public class AllTreatmentController {
             AnchorPane pane = loader.load();
             Scene scene = new Scene(pane);
 
-            // the primary stage should stay in the background
             Stage stage = new Stage();
 
             NewTreatmentController controller = loader.getController();
@@ -198,7 +196,6 @@ public class AllTreatmentController {
             AnchorPane pane = loader.load();
             Scene scene = new Scene(pane);
 
-            // the primary stage should stay in the background
             Stage stage = new Stage();
             TreatmentController controller = loader.getController();
             controller.initializeController(this, stage, treatment);

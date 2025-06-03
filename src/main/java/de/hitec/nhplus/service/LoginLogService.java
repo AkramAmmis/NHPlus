@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoginLogService {
+   
     private static final String LOG_FILE = "login_logs.txt";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -17,15 +18,22 @@ public class LoginLogService {
     }
 
     private void writeToFile(LoginLog log) {
-        try (FileWriter writer = new FileWriter(LOG_FILE, true)) {
-            String logEntry = String.format("%s|%s|%s|%s|%s|%s%n",
-                log.getTimestamp().format(FORMATTER),
-                log.getUsername(),
-                log.getIpAddress(),
-                log.isSuccessful() ? "SUCCESS" : "FAILED",
-                log.getFailureReason() != null ? log.getFailureReason() : "",
-                System.getProperty("line.separator"));
-            writer.write(logEntry);
+        File file = new File(LOG_FILE);
+        try {
+            // Ensure the file exists
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            try (FileWriter writer = new FileWriter(file, true)) {
+                String logEntry = String.format("%s|%s|%s|%s|%s%n",
+                    log.getTimestamp().format(FORMATTER),
+                    log.getUsername(),
+                    log.getIpAddress(),
+                    log.isSuccessful() ? "SUCCESS" : "FAILED",
+                    log.getFailureReason() != null ? log.getFailureReason() : ""
+                );
+                writer.write(logEntry);
+            }
         } catch (IOException e) {
             System.err.println("Error writing to log file: " + e.getMessage());
         }
@@ -33,7 +41,11 @@ public class LoginLogService {
 
     public List<LoginLog> getRecentLogs(int limit) {
         List<LoginLog> logs = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(LOG_FILE))) {
+        File file = new File(LOG_FILE);
+        if (!file.exists()) {
+            return logs;
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null && logs.size() < limit) {
                 LoginLog log = parseLogLine(line);

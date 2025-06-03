@@ -7,14 +7,13 @@ public class AuthenticationService {
     public AuthenticationResult authenticate(String username, String password, String ipAddress) {
         System.out.println("DEBUG: Authentifizierungsversuch für: " + username);
         
-        // Erst prüfen ob Account gesperrt ist
         if (lockService.isAccountLocked(username)) {
             String reason = "Account temporär gesperrt";
             loginLogService.logLoginAttempt(username, ipAddress, false, reason);
             return new AuthenticationResult(false, reason);
         }
         
-        // Dann Anmeldedaten prüfen
+ 
         boolean credentialsValid = validateCredentials(username, password);
         System.out.println("DEBUG: Anmeldedaten gültig: " + credentialsValid);
         
@@ -31,13 +30,11 @@ public class AuthenticationService {
     }
     
     private boolean validateCredentials(String username, String password) {
-        // Hier würde die eigentliche Passwort-Validierung stattfinden
-        // Placeholder für die bestehende Logik
+        
         System.out.println("DEBUG: Validiere Anmeldedaten für " + username);
         
-        // TODO: Implementieren Sie hier Ihre bestehende Passwort-Validierung
-        // return userDao.validatePassword(username, password);
-        return false; // Placeholder
+        
+        return false; // 
     }
     
     public void unlockAccount(String username) {

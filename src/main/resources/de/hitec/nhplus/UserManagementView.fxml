@@ -55,12 +55,12 @@
         </rowConstraints>
          <children>
             <TextField fx:id="textFieldUsername" promptText="Benutzername" />
-            <PasswordField fx:id="passwordField" promptText="Passwort" GridPane.columnIndex="1" />
-            <TextField fx:id="textFieldFirstName" promptText="Vorname" GridPane.columnIndex="2" />
-            <TextField fx:id="textFieldLastName" promptText="Nachname" GridPane.columnIndex="3" />
-            <TextField fx:id="textFieldEmail" promptText="E-Mail" GridPane.rowIndex="1" />
-            <TextField fx:id="textFieldPhone" promptText="Telefon" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <ComboBox fx:id="comboBoxRole" prefWidth="150.0" promptText="Rolle" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <PasswordField fx:id="passwordField" promptText="Passwort" />
+            <TextField fx:id="textFieldFirstName" promptText="Vorname" />
+            <TextField fx:id="textFieldLastName" promptText="Nachname" />
+            <TextField fx:id="textFieldEmail" promptText="E-Mail" />
+            <TextField fx:id="textFieldPhone" promptText="Telefon" />
+            <ComboBox fx:id="comboBoxRole" promptText="Rolle" />
             <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.columnIndex="3" GridPane.columnSpan="3" GridPane.rowIndex="1">
                <children>
                   <Button fx:id="buttonAdd" mnemonicParsing="false" onAction="#handleAdd" prefWidth="100.0" text="Hinzufügen" />

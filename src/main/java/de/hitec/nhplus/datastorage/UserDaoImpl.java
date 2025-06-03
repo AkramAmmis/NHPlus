@@ -12,15 +12,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implementierung der UserDao-Schnittstelle
- */
 public class UserDaoImpl extends DaoImp<User> implements UserDao {
 
-    /**
-     * Konstruktor mit Datenbankverbindung
-     * @param connection Die zu verwendende Datenbankverbindung
-     */
     public UserDaoImpl(Connection connection) {
         super(connection);
     }
@@ -45,16 +38,10 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         return preparedStatement;
     }
 
-    /**
-     * Verschlüsselt das Passwort
-     * @param password Das zu verschlüsselnde Passwort
-     * @return Das verschlüsselte Passwort
-     */
     private String encryptPassword(String password) {
         if (password == null || password.isEmpty()) {
             return "";
         }
-        // Prüfe, ob das Passwort bereits ein SHA-256-Hash ist (64 Hex-Zeichen)
         if (password.matches("^[a-fA-F0-9]{64}$")) {
             return password;
         }
@@ -87,13 +74,11 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                 UserRole.valueOf(result.getString("role"))
         );
 
-        // Versuche, die caregiver_id zu lesen, falls vorhanden
         try {
             user.setCaregiverId(result.getLong("caregiver_id"));
         } catch (SQLException e) {
             user.setCaregiverId(0);
         }
-        // Neue Felder für Login-Sperre lesen
         try {
             user.setFailedAttempts(result.getInt("failed_attempts"));
         } catch (SQLException e) {
@@ -138,12 +123,10 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, user.getUsername());
 
-            // Prüfen, ob das Passwort bereits verschlüsselt ist
             String currentPasswordInDb = getPasswordFromDatabase(user.getUid());
             System.out.println("Aktuelles Benutzer-Passwort in DB: " + (currentPasswordInDb != null ? "[verschlüsselt]" : "null"));
             System.out.println("Neues Benutzer-Passwort: " + (user.getPassword() != null ? "[vorhanden]" : "null"));
 
-            // Immer verschlüsseln, wenn ein neues Passwort gesetzt wird
             preparedStatement.setString(2, encryptPassword(user.getPassword()));
             System.out.println("Benutzer-Passwort wurde verschlüsselt und wird aktualisiert.");
 
@@ -162,11 +145,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         return preparedStatement;
     }
 
-    /**
-     * Holt das aktuelle Passwort eines Benutzers aus der Datenbank
-     * @param uid Die ID des Benutzers
-     * @return Das verschlüsselte Passwort oder null
-     */
     private String getPasswordFromDatabase(long uid) {
         try {
             PreparedStatement st = connection.prepareStatement("SELECT password FROM users WHERE uid = ?");
@@ -204,13 +182,11 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         try {
             Statement st = connection.createStatement();
 
-            // Prüfen, ob die Tabelle bereits existiert
             ResultSet rs = st.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users';");
             boolean tableExists = rs.next();
             rs.close();
 
             if (!tableExists) {
-                // Tabelle neu erstellen
                 st.executeUpdate("CREATE TABLE users (" +
                                 "uid INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "username TEXT UNIQUE NOT NULL, " +
@@ -226,10 +202,8 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
 
                 System.out.println("Benutzer-Tabelle 'users' wurde erstellt");
 
-                // Admin-Benutzer erstellen
                 createAdminUser();
             } else {
-                // Prüfen, ob die Spalte caregiver_id existiert
                 try {
                     ResultSet columns = connection.getMetaData().getColumns(null, null, "users", "caregiver_id");
                     boolean caregiverIdExists = columns.next();
@@ -240,7 +214,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                         st.executeUpdate("ALTER TABLE users ADD COLUMN caregiver_id BIGINT DEFAULT 0");
                         System.out.println("Spalte 'caregiver_id' wurde zur Tabelle 'users' hinzugefügt.");
                     }
-                    // Neue Felder für Login-Sperre prüfen und ggf. hinzufügen
                     ResultSet failedAttemptsCol = connection.getMetaData().getColumns(null, null, "users", "failed_attempts");
                     if (!failedAttemptsCol.next()) {
                         st.executeUpdate("ALTER TABLE users ADD COLUMN failed_attempts INTEGER DEFAULT 0");
@@ -257,14 +230,12 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                     System.err.println("Fehler beim Prüfen oder Hinzufügen der Spalte 'caregiver_id': " + ex.getMessage());
                     ex.printStackTrace();
 
-                    // Notfallversuch, falls die Metadaten-Abfrage fehlschlägt
                     try {
                         st.executeUpdate("ALTER TABLE users ADD COLUMN caregiver_id BIGINT DEFAULT 0");
                         System.out.println("Spalte 'caregiver_id' wurde zur Tabelle 'users' hinzugefügt (Notfallversuch).");
                     } catch (SQLException e) {
-                        // Ignorieren, falls Spalte bereits existiert
                         if (!e.getMessage().contains("duplicate column")) {
-                            throw e; // Andere Fehler weitergeben
+                            throw e;
                         }
                     }
                 }
@@ -277,14 +248,10 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         }
     }
 
-    /**
-     * Erstellt einen Administrator-Benutzer in der Datenbank
-     */
     private void createAdminUser() {
         try {
             System.out.println("Prüfe auf vorhandene Admin-Benutzer...");
 
-            // Prüfen, ob bereits ein Admin existiert
             PreparedStatement checkAdmin = connection.prepareStatement(
                 "SELECT COUNT(*) FROM users WHERE role = ?");
             checkAdmin.setString(1, UserRole.ADMIN.name());
@@ -299,7 +266,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
             if (adminCount == 0) {
                 System.out.println("Kein Admin-Benutzer gefunden. Erstelle Standard-Admin...");
 
-                // Admin-Benutzer erstellen
                 User admin = new User(
                     "admin",
                     "admin123",
@@ -324,7 +290,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
     @Override
     public User authenticate(String username, String password) {
         try {
-            // Prüfen, ob die users-Tabelle existiert
             Statement checkTable = connection.createStatement();
             ResultSet tables = checkTable.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users';");
             boolean usersTableExists = tables.next();
@@ -336,7 +301,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                 createTable();
             }
 
-            // Benutzer anhand des Benutzernamens suchen
             PreparedStatement st = connection.prepareStatement(
                 "SELECT * FROM users WHERE username = ?");
             st.setString(1, username);
@@ -347,15 +311,12 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
             if (rs.next()) {
                 user = getInstanceFromResultSet(rs);
 
-                // Spezialbehandlung für Admin-Account mit Standardpasswort
                 boolean isAuthSuccess = false;
                 if ("admin".equals(username) && "admin123".equals(password)) {
-                    // Prüfe, ob das gespeicherte Passwort dem verschlüsselten "admin123" entspricht
                     String expectedHash = PasswordUtils.hashPassword("admin123");
                     if (expectedHash.equals(user.getPassword())) {
                         isAuthSuccess = true;
                     } else {
-                        // Falls das Passwort nicht korrekt gespeichert ist, aktualisiere es
                         System.out.println("Admin-Passwort wird neu gesetzt...");
                         user.setPassword(expectedHash);
                         user.setFailedAttempts(0);
@@ -364,7 +325,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                         isAuthSuccess = true;
                     }
                 } else {
-                    // Normale Passwort-Überprüfung
                     String encryptedPassword = encryptPassword(password);
                     isAuthSuccess = encryptedPassword.equals(user.getPassword());
                 }
@@ -393,11 +353,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         }
     }
 
-    /**
-     * Entsperrt einen gesperrten Benutzer (nur für Administratoren)
-     * @param username Der zu entsperrende Benutzername
-     * @return true wenn erfolgreich entsperrt, sonst false
-     */
     public boolean unlockUser(String username) {
         try {
             PreparedStatement st = connection.prepareStatement(
@@ -468,7 +423,6 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
         @Override
         public User findByUsername(String username) {
             try {
-                // Prüfen, ob die users-Tabelle existiert
                 Statement checkTable = connection.createStatement();
                 ResultSet tables = checkTable.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users';");
                 boolean usersTableExists = tables.next();
@@ -490,13 +444,12 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
 
                 if (rs.next()) {
                     user = getInstanceFromResultSet(rs);
-                    // Caregiver-ID direkt aus dem ResultSet holen
                     if (user != null) {
                         try {
                             user.setCaregiverId(rs.getLong("caregiver_id"));
                         } catch (SQLException e) {
                             System.out.println("Spalte 'caregiver_id' nicht gefunden: " + e.getMessage());
-                            user.setCaregiverId(0); // Standardwert setzen
+                            user.setCaregiverId(0);
                         }
                     }
                 } else {
@@ -512,19 +465,14 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
             }
         }
 
-    /**
-     * Migrationsmethode: Wandelt alte Caregiver-Daten in das neue User-Format um
-     */
     public void migrateCaregiverToUsers() {
         try {
-            // Prüfen, ob die alte Tabelle existiert
             Statement st = connection.createStatement();
             ResultSet rs = st.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='caregiver';");
             boolean caregiverTableExists = rs.next();
             rs.close();
 
             if (caregiverTableExists) {
-                // Alle Caregiver auslesen
                 rs = st.executeQuery("SELECT * FROM caregiver");
                 List<User> usersToCreate = new ArrayList<>();
 
@@ -536,17 +484,14 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                         username = rs.getString("username");
                         password = rs.getString("password");
                     } catch (SQLException e) {
-                        // Fallback für alte Daten ohne Login-Spalten
                         username = "caregiver_" + rs.getLong("cid");
                         password = "changeme";
                     }
 
-                    // Leere Benutzernamen vermeiden
                     if (username == null || username.isEmpty()) {
                         username = "caregiver_" + rs.getLong("cid");
                     }
 
-                    // Prüfen, ob bereits ein Benutzer mit diesem Namen existiert
                     PreparedStatement checkUser = connection.prepareStatement(
                         "SELECT COUNT(*) FROM users WHERE username = ?");
                     checkUser.setString(1, username);
@@ -559,18 +504,16 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                     checkUser.close();
 
                     if (userCount == 0) {
-                        // Neuen Benutzer erstellen
                         User user = new User(
                             username,
-                            password, // Passwort ist bereits verschlüsselt
+                            password,
                             rs.getString("firstname"),
                             rs.getString("surname"),
-                            "", // Keine Email in der alten Struktur
+                            "",
                             rs.getString("telephone"),
                             UserRole.CAREGIVER
                         );
 
-                        // Verknüpfung zur Caregiver-ID herstellen
                         long caregiverId = rs.getLong("cid");
                         user.setCaregiverId(caregiverId);
 
@@ -579,13 +522,12 @@ public class UserDaoImpl extends DaoImp<User> implements UserDao {
                 }
                 rs.close();
 
-                // Benutzer in die neue Tabelle einfügen
                 for (User user : usersToCreate) {
                     PreparedStatement insertUser = connection.prepareStatement(
                         "INSERT INTO users (username, password, first_name, last_name, email, phone_number, role, caregiver_id) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                     insertUser.setString(1, user.getUsername());
-                    insertUser.setString(2, user.getPassword()); // Bereits verschlüsselt
+                    insertUser.setString(2, user.getPassword());
                     insertUser.setString(3, user.getFirstName());
                     insertUser.setString(4, user.getLastName());
                     insertUser.setString(5, user.getEmail());

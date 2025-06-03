@@ -5,16 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-/**
- * Hilfsklasse für Passwort-Operationen
- */
 public class PasswordUtils {
 
-    /**
-     * Generiert ein zufälliges, sicheres Passwort
-     * @param length Länge des zu generierenden Passworts
-     * @return Ein zufälliges Passwort
-     */
     public static String generateSecurePassword(int length) {
         final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
         final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
@@ -25,18 +17,15 @@ public class PasswordUtils {
         SecureRandom random = new SecureRandom();
         StringBuilder password = new StringBuilder(length);
 
-        // Sicherstellen, dass mindestens ein Zeichen aus jeder Kategorie enthalten ist
         password.append(CHAR_LOWER.charAt(random.nextInt(CHAR_LOWER.length())));
         password.append(CHAR_UPPER.charAt(random.nextInt(CHAR_UPPER.length())));
         password.append(NUMBER.charAt(random.nextInt(NUMBER.length())));
         password.append(OTHER_CHAR.charAt(random.nextInt(OTHER_CHAR.length())));
 
-        // Auffüllen mit zufälligen Zeichen
         for (int i = 4; i < length; i++) {
             password.append(ALL_ALLOWED_CHARS.charAt(random.nextInt(ALL_ALLOWED_CHARS.length())));
         }
 
-        // Durchmischen des Passworts
         char[] pwdChars = password.toString().toCharArray();
         for (int i = pwdChars.length - 1; i > 0; i--) {
             int j = random.nextInt(i + 1);
@@ -48,11 +37,6 @@ public class PasswordUtils {
         return new String(pwdChars);
     }
 
-    /**
-     * Prüft die Stärke eines Passworts
-     * @param password Das zu prüfende Passwort
-     * @return true wenn das Passwort stark genug ist, sonst false
-     */
     public static boolean isStrongPassword(String password) {
         if (password == null || password.length() < 8) {
             return false;
@@ -73,11 +57,6 @@ public class PasswordUtils {
         return hasLower && hasUpper && hasDigit && hasSpecial;
     }
 
-    /**
-     * Verschlüsselt ein Passwort mit SHA-256
-     * @param password Das zu verschlüsselnde Passwort
-     * @return Das verschlüsselte Passwort als Hex-String
-     */
     public static String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

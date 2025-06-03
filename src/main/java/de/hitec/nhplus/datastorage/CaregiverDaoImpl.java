@@ -1,8 +1,6 @@
 package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Caregiver;
-import de.hitec.nhplus.model.User;
-import de.hitec.nhplus.model.UserRole;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,40 +20,32 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     protected PreparedStatement getCreateStatement(Caregiver caregiver) {
         PreparedStatement preparedStatement = null;
         try {
-            // Prüfen, ob die Tabelle existiert
             createTable();
 
-            // Anmeldedaten werden in der User-Tabelle gespeichert
             String username = caregiver.getUsername();
             if (username == null || username.isEmpty()) {
-                // Generiere einen Benutzernamen aus dem Namen
-                username = (caregiver.getFirstName().toLowerCase().charAt(0) + 
-                          caregiver.getSurname().toLowerCase().replace(" ", ""));
+                username = (caregiver.getFirstName().toLowerCase().charAt(0) +
+                        caregiver.getSurname().toLowerCase().replace(" ", ""));
                 caregiver.setUsername(username);
             }
 
-            // Erstelle auch einen entsprechenden User für die Anmeldedaten
             UserDao userDao = DaoFactory.getDaoFactory().createUserDAO();
-            userDao.createTable(); // Stelle sicher, dass die User-Tabelle existiert
+            userDao.createTable();
 
             String password = caregiver.getPassword();
             if (password == null) {
-                password = ""; // Leeres Passwort als Standard
+                password = "";
                 caregiver.setPassword(password);
             }
 
-            // Stellen Sie sicher, dass die Connection nicht null ist
             if (this.connection == null) {
                 System.err.println("FEHLER: Datenbankverbindung ist null!");
-                // Versuchen, eine neue Verbindung zu bekommen
                 this.connection = ConnectionBuilder.getConnection();
                 if (this.connection == null) {
                     throw new SQLException("Konnte keine Datenbankverbindung herstellen");
                 }
             }
 
-            // Tabelle in der Datenbank überprüfen
-            Statement checkStatement = this.connection.createStatement();
             ResultSet tables = this.connection.getMetaData().getTables(null, null, "caregiver", null);
             boolean tableExists = tables.next();
             tables.close();
@@ -89,11 +79,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
         return preparedStatement;
     }
 
-    /**
-     * Verschlüsselt das Passwort mit einem sicheren Hashing-Algorithmus
-     * @param password Das zu verschlüsselnde Passwort
-     * @return Das verschlüsselte Passwort
-     */
     private String encryptPassword(String password) {
         if (password == null || password.isEmpty()) {
             return "";
@@ -145,6 +130,8 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
         while (result.next()) {
             Caregiver caregiver = new Caregiver(
                     result.getLong("cid"),
+                    result.getString("username"),
+                    result.getString("password"),
                     result.getString("firstname"),
                     result.getString("surname"),
                     result.getString("telephone")
@@ -162,14 +149,10 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caregiver.getUsername());
 
-            // Prüfen, ob das Passwort bereits verschlüsselt ist
-            // Wenn das Passwort bereits in der DB existiert und nicht geändert wurde, ist es bereits verschlüsselt
-            // Andernfalls müssen wir es neu verschlüsseln
             String currentPasswordInDb = getPasswordFromDatabase(caregiver.getCid());
             System.out.println("Aktuelles Passwort in DB: " + (currentPasswordInDb != null ? "[verschlüsselt]" : "null"));
             System.out.println("Neues Passwort: " + (caregiver.getPassword() != null ? "[vorhanden]" : "null"));
 
-            // Immer verschlüsseln, wenn ein neues Passwort gesetzt wird
             preparedStatement.setString(2, encryptPassword(caregiver.getPassword()));
             System.out.println("Passwort wurde verschlüsselt und wird aktualisiert.");
 
@@ -183,11 +166,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
         return preparedStatement;
     }
 
-    /**
-     * Holt das aktuelle Passwort eines Caregivers aus der Datenbank
-     * @param cid Die ID des Caregivers
-     * @return Das verschlüsselte Passwort oder null
-     */
     private String getPasswordFromDatabase(long cid) {
         try {
             PreparedStatement st = connection.prepareStatement("SELECT password FROM caregiver WHERE cid = ?");
@@ -220,11 +198,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
         return preparedStatement;
     }
 
-    // Die folgenden Methoden sind spezifisch für CaregiverDao und bereits durch DaoImp abgedeckt,
-    // aber zur Klarheit hier explizit überschrieben, falls CaregiverDao spezifische Signaturen hätte.
-    // Wenn CaregiverDao keine zusätzlichen Methoden über Dao<Caregiver> hinaus definiert,
-    // sind diese Überschreibungen technisch nicht notwendig, da sie von DaoImp<Caregiver> geerbt werden.
-
     @Override
     public long create(Caregiver caregiver) throws SQLException {
         return super.create(caregiver);
@@ -253,7 +226,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     @Override
     public void createTable() {
         try {
-            // Sicherstellen, dass die Connection nicht null ist
             if (connection == null) {
                 System.err.println("FEHLER: Connection ist null in createTable");
                 connection = ConnectionBuilder.getConnection();
@@ -265,14 +237,12 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             Statement st = connection.createStatement();
             System.out.println("Prüfe, ob Tabelle 'caregiver' existiert...");
 
-            // Prüfen, ob die Tabelle bereits existiert
             ResultSet tables = connection.getMetaData().getTables(null, null, "caregiver", null);
             boolean tableExists = tables.next();
             tables.close();
 
             if (!tableExists) {
                 System.out.println("Tabelle 'caregiver' existiert nicht. Erstelle neu...");
-                // Tabelle erstellen, wenn sie nicht existiert
                 String createTableSQL = "CREATE TABLE IF NOT EXISTS caregiver (" +
                         "cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         "username TEXT, " +
@@ -286,7 +256,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                 System.out.println("Tabelle 'caregiver' erfolgreich erstellt.");
             } else {
                 System.out.println("Tabelle 'caregiver' existiert bereits.");
-                // Prüfen, ob die Spalten username und password existieren
                 try {
                     ResultSet columns = connection.getMetaData().getColumns(null, null, "caregiver", "username");
                     boolean usernameExists = columns.next();
@@ -294,23 +263,19 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
 
                     if (!usernameExists) {
                         System.out.println("Spalten 'username' und 'password' fehlen. Füge hinzu...");
-                        // Spalten hinzufügen, wenn sie nicht existieren
                         st.executeUpdate("ALTER TABLE caregiver ADD COLUMN username TEXT");
                         st.executeUpdate("ALTER TABLE caregiver ADD COLUMN password TEXT");
 
-                        // Bestehende Datensätze mit Standardwerten füllen
                         st.executeUpdate("UPDATE caregiver SET username = 'caregiver_' || cid, password = '' WHERE username IS NULL");
                         System.out.println("Spalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
                     }
                 } catch (SQLException e) {
                     System.out.println("Fehler beim Prüfen der Spalten: " + e.getMessage());
-                    // Falls die Spalte nicht existiert oder ein anderer Fehler auftritt, versuchen wir die Spalten hinzuzufügen
                     try {
                         System.out.println("Versuche, Spalten 'username' und 'password' hinzuzufügen...");
                         st.executeUpdate("ALTER TABLE caregiver ADD COLUMN username TEXT UNIQUE");
                         st.executeUpdate("ALTER TABLE caregiver ADD COLUMN password TEXT");
 
-                        // Bestehende Datensätze mit Standardwerten füllen
                         st.executeUpdate("UPDATE caregiver SET username = 'caregiver_' || cid, password = '' WHERE username IS NULL");
                         System.out.println("Spalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
                     } catch (SQLException ex) {
@@ -323,7 +288,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             st.close();
             System.out.println("Tabelle 'caregiver' ist bereit.");
 
-                // Anmerkung: Anmeldedaten werden in der User-Tabelle gespeichert
         } catch (SQLException e) {
             System.err.println("SQL-Fehler in createTable: " + e.getMessage());
             e.printStackTrace();
@@ -358,9 +322,8 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     @Override
     public Caregiver authenticate(String username, String password) {
         try {
-            // Zuerst holen wir den Caregiver basierend auf dem Benutzernamen
             PreparedStatement st = connection.prepareStatement(
-                "SELECT * FROM caregiver WHERE username = ?"
+                    "SELECT * FROM caregiver WHERE username = ?"
             );
             st.setString(1, username);
 
@@ -370,10 +333,8 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             if (rs.next()) {
                 caregiver = getInstanceFromResultSet(rs);
 
-                // Überprüfe, ob das verschlüsselte eingegebene Passwort mit dem gespeicherten übereinstimmt
                 String encryptedPassword = encryptPassword(password);
                 if (!encryptedPassword.equals(caregiver.getPassword())) {
-                    // Passwort stimmt nicht überein
                     caregiver = null;
                 }
             }

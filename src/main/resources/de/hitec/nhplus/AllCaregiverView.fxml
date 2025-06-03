@@ -33,6 +33,8 @@
                     prefWidth="90.0" text="Hinzufügen" />
             <!-- 5. fx:id angepasst (war schon korrekt), onAction hinzugefügt -->
             <Button fx:id="buttonDelete" mnemonicParsing="false" onAction="#handleDelete" prefWidth="90.0" text="Löschen" />
+            <!-- Neuer Passwort-Ändern-Button -->
+            <Button fx:id="buttonChangePassword" mnemonicParsing="false" onAction="#handleChangePassword" prefWidth="120.0" text="Passwort ändern" />
          </children>
       </HBox>
       <HBox alignment="TOP_CENTER" layoutX="10.0" layoutY="10.0" prefWidth="200.0" spacing="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">

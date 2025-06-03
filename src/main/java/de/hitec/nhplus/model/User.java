@@ -1,8 +1,5 @@
 package de.hitec.nhplus.model;
 
-/**
- * Klasse zur Repräsentation eines Benutzers im System
- */
 public class User {
     private long uid;
     private String username;
@@ -17,7 +14,6 @@ public class User {
     private long caregiverId;
     private long lockUntil;
 
-    // Konstruktoren
     public User() {}
 
     public User(String username, String password, UserRole role) {
@@ -30,8 +26,7 @@ public class User {
         this.lockUntil = 0;
     }
 
-    public User(String username, String password, String firstName, String lastName, 
-                String email, String phoneNumber, UserRole role) {
+    public User(String username, String password, String firstName, String lastName, String email, String phoneNumber, UserRole role) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
@@ -45,8 +40,7 @@ public class User {
         this.lockUntil = 0;
     }
 
-    public User(long uid, String username, String password, String firstName, String lastName, 
-                String email, String phoneNumber, UserRole role) {
+    public User(long uid, String username, String password, String firstName, String lastName, String email, String phoneNumber, UserRole role) {
         this.uid = uid;
         this.username = username;
         this.password = password;
@@ -61,7 +55,6 @@ public class User {
         this.lockUntil = 0;
     }
 
-    // Getter und Setter
     public long getUid() { return uid; }
     public void setUid(long uid) { this.uid = uid; }
 
@@ -106,16 +99,11 @@ public class User {
         return UserRole.CAREGIVER.equals(this.role);
     }
 
-    /**
-     * Gibt den vollständigen Namen zurück (Vorname + Nachname)
-     * @return Vollständiger Name oder Benutzername falls Name nicht verfügbar
-     */
     public String getFullName() {
-        if (firstName != null && !firstName.trim().isEmpty() && 
-            lastName != null && !lastName.trim().isEmpty()) {
+        if (firstName != null && !firstName.trim().isEmpty() && lastName != null && !lastName.trim().isEmpty()) {
             return firstName + " " + lastName;
         }
-        return username; // Fallback auf Benutzername
+        return username;
     }
 
     @Override

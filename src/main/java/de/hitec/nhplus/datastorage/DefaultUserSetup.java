@@ -12,13 +12,11 @@ public class DefaultUserSetup {
     public static void createDefaultAdminUser() {
         try (Connection connection = ConnectionBuilder.getConnection()) {
             
-            // Prüfen ob bereits ein Admin existiert
             if (adminUserExists(connection)) {
                 System.out.println("Admin-Benutzer bereits vorhanden.");
                 return;
             }
             
-            // Standard-Admin erstellen
             createAdminUser(connection, "admin", "admin123", "ADMIN");
             System.out.println("Standard-Admin erstellt:");
             System.out.println("Benutzername: admin");
@@ -31,7 +29,7 @@ public class DefaultUserSetup {
     }
     
     private static boolean adminUserExists(Connection connection) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM user WHERE role = 'ADMIN'";
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'ADMIN'";
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             return rs.next() && rs.getInt(1) > 0;
@@ -39,7 +37,7 @@ public class DefaultUserSetup {
     }
     
     private static void createAdminUser(Connection connection, String username, String password, String role) throws SQLException {
-        String sql = "INSERT INTO user (username, password, role, locked, failed_attempts) VALUES (?, ?, ?, 0, 0)";
+        String sql = "INSERT INTO users (username, password, role, locked, failed_attempts) VALUES (?, ?, ?, 0, 0)";
         
         String hashedPassword = hashPassword(password);
         
@@ -68,13 +66,13 @@ public class DefaultUserSetup {
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
             System.err.println("Fehler beim Hashen des Passworts: " + e.getMessage());
-            return password; // Fallback (unsicher!)
+            return password;
         }
     }
     
     public static void listAllUsers() {
         try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement stmt = connection.prepareStatement("SELECT username, role, locked FROM user");
+             PreparedStatement stmt = connection.prepareStatement("SELECT username, role, locked FROM users");
              ResultSet rs = stmt.executeQuery()) {
             
             System.out.println("\n=== Alle Benutzer ===");
