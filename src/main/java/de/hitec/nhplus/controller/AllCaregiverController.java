@@ -2,22 +2,20 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
+import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Caregiver;
+import de.hitec.nhplus.model.Treatment;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 
-// ... andere Importe ...
-import de.hitec.nhplus.model.Caregiver; // Sicherstellen, dass Caregiver importiert ist
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * The <code>AllCaregiverController</code> contains the entire logic of the caregiver view.
@@ -71,15 +69,12 @@ public class AllCaregiverController {
 
         this.columnFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         this.columnFirstName.setCellFactory(TextFieldTableCell.forTableColumn());
-        // this.columnFirstName.setOnEditCommit(this::handleOnEditFirstname); // Alternative zur FXML-Deklaration
 
         this.columnSurname.setCellValueFactory(new PropertyValueFactory<>("surname"));
         this.columnSurname.setCellFactory(TextFieldTableCell.forTableColumn());
-        // this.columnSurname.setOnEditCommit(this::handleOnEditSurname); // Alternative zur FXML-Deklaration
 
         this.columnTelephone.setCellValueFactory(new PropertyValueFactory<>("telephone"));
         this.columnTelephone.setCellFactory(TextFieldTableCell.forTableColumn());
-        // this.columnTelephone.setOnEditCommit(this::handleOnEditTelephone); // Alternative zur FXML-Deklaration
 
         this.tableView.setItems(this.caregivers);
 
@@ -91,7 +86,6 @@ public class AllCaregiverController {
         ChangeListener<String> inputNewCaregiverListener = (observableValue, oldText, newText) ->
             AllCaregiverController.this.buttonAdd.setDisable(!AllCaregiverController.this.areInputDataValid());
     
-        // Anpassung an die neuen fx:id Namen (falls geändert)
         this.textFieldSurname.textProperty().addListener(inputNewCaregiverListener);
         this.textFieldFirstName.textProperty().addListener(inputNewCaregiverListener);
         this.textFieldTelephone.textProperty().addListener(inputNewCaregiverListener);
@@ -167,6 +161,25 @@ public class AllCaregiverController {
         Caregiver selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             try {
+                TreatmentDao treatmentDao = DaoFactory.getDaoFactory().createTreatmentDao();
+                List<Treatment> activeTreatments = treatmentDao.readTreatmentsByCid(selectedItem.getCid());
+
+                if (!activeTreatments.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Warnung");
+                    alert.setHeaderText("Pfleger hat aktive Behandlungen");
+                    alert.setContentText("Der Pfleger ist mit " + activeTreatments.size() +
+                            " Behandlungen verknüpft. Sie können den Pfleger noch nicht löschen?");
+
+                    ButtonType buttonTypeOk = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(buttonTypeOk);
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent() && result.get() == buttonTypeOk) {
+                        return;
+                    }
+                }
+
                 DaoFactory.getDaoFactory().createCaregiverDAO().deleteById(selectedItem.getCid());
                 this.tableView.getItems().remove(selectedItem);
             } catch (SQLException exception) {
@@ -182,19 +195,10 @@ public class AllCaregiverController {
      */
     @FXML
     public void handleAdd() {
-        // Ist der Button überhaupt klickbar und die Methode wird aufgerufen?
         System.out.println("AllCaregiverController.handleAdd() wurde aufgerufen!");
 
-        // Ist das DAO-Objekt initialisiert?
         if (this.dao == null) {
             System.err.println("FEHLER: this.dao in handleAdd() ist null!");
-            // Hier könnten Sie versuchen, es erneut zu initialisieren oder eine Fehlermeldung anzuzeigen
-            // Fürs Debugging ist es erstmal wichtig zu wissen, ob es null ist.
-            // this.dao = DaoFactory.getDaoFactory().createCaregiverDAO(); // Notlösung fürs Debugging, Ursache finden!
-            // if (this.dao == null) {
-            //     System.err.println("FEHLER: this.dao ist auch nach erneuter Initialisierung null!");
-            //     return;
-            // }
         }
 
         String surname = this.textFieldSurname.getText();

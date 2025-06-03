@@ -21,6 +21,7 @@ import de.hitec.nhplus.model.Treatment;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AllTreatmentController {
 
@@ -31,7 +32,10 @@ public class AllTreatmentController {
     private TableColumn<Treatment, Integer> columnId;
 
     @FXML
-    private TableColumn<Treatment, Integer> columnPid;
+    private TableColumn<Treatment, String> columnPid;
+
+    @FXML
+    private TableColumn<Treatment, String> columnCid;
 
     @FXML
     private TableColumn<Treatment, String> columnDate;
@@ -49,28 +53,23 @@ public class AllTreatmentController {
     private ComboBox<String> comboBoxPatientSelection;
 
     @FXML
-    private ComboBox<String> comboBoxCaregiverSelection;
-
-    @FXML
     private Button buttonDelete;
 
     private final ObservableList<Treatment> treatments = FXCollections.observableArrayList();
     private TreatmentDao dao;
     private final ObservableList<String> patientSelection = FXCollections.observableArrayList();
     private ArrayList<Patient> patientList;
-    private final ObservableList<String> caregiverSelection = FXCollections.observableArrayList();
-    private ArrayList<Caregiver> caregiverList;
+
 
     public void initialize() {
         readAllAndShowInTableView();
         comboBoxPatientSelection.setItems(patientSelection);
         comboBoxPatientSelection.getSelectionModel().select(0);
 
-        comboBoxCaregiverSelection.setItems(caregiverSelection);
-        comboBoxCaregiverSelection.getSelectionModel().select(0);
 
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("tid"));
         this.columnPid.setCellValueFactory(new PropertyValueFactory<>("pid"));
+        this.columnCid.setCellValueFactory(new PropertyValueFactory<>("cid"));
         this.columnDate.setCellValueFactory(new PropertyValueFactory<>("date"));
         this.columnBegin.setCellValueFactory(new PropertyValueFactory<>("begin"));
         this.columnEnd.setCellValueFactory(new PropertyValueFactory<>("end"));
@@ -84,7 +83,6 @@ public class AllTreatmentController {
                         AllTreatmentController.this.buttonDelete.setDisable(newTreatment == null));
 
         this.createPatientComboBoxData();
-        this.createCaregiverComboBoxData();
     }
 
     public void readAllAndShowInTableView() {
@@ -92,7 +90,8 @@ public class AllTreatmentController {
         comboBoxPatientSelection.getSelectionModel().select(0);
         this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
         try {
-            this.treatments.addAll(dao.readAll());
+            List<Treatment> treatmentList = dao.readAll();
+            this.treatments.setAll(treatmentList);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -105,19 +104,6 @@ public class AllTreatmentController {
             this.patientSelection.add("alle");
             for (Patient patient: patientList) {
                 this.patientSelection.add(patient.getSurname());
-            }
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    private void createCaregiverComboBoxData() {
-        CaregiverDao dao = DaoFactory.getDaoFactory().createCaregiverDAO();
-        try {
-            caregiverList = (ArrayList<Caregiver>) dao.readAll();
-            this.caregiverSelection.add("alle");
-            for (Caregiver caregiver: caregiverList) {
-                this.caregiverSelection.add(caregiver.getSurname());
             }
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -149,44 +135,11 @@ public class AllTreatmentController {
         }
     }
 
-    @FXML
-    public void handleCaregiverComboBox() {
-        String selectedCaregiver = this.comboBoxCaregiverSelection.getSelectionModel().getSelectedItem();
-        this.treatments.clear();
-        this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
-
-        if (selectedCaregiver.equals("alle")) {
-            try {
-                this.treatments.addAll(this.dao.readAll());
-            } catch (SQLException exception) {
-                exception.printStackTrace();
-            }
-        }
-
-        Caregiver caregiver = searchInCaregiverList(selectedCaregiver);
-        if (caregiver !=null) {
-            try {
-                this.treatments.addAll(this.dao.readTreatmentsByPid(caregiver.getCid()));
-            } catch (SQLException exception) {
-                exception.printStackTrace();
-            }
-        }
-    }
-
 
     private Patient searchInPatientList(String surname) {
         for (Patient patient : this.patientList) {
             if (patient.getSurname().equals(surname)) {
                 return patient;
-            }
-        }
-        return null;
-    }
-
-    private Caregiver searchInCaregiverList(String surname) {
-        for (Caregiver caregiver : this.caregiverList) {
-            if (caregiver.getSurname().equals(surname)) {
-                return caregiver;
             }
         }
         return null;
@@ -209,9 +162,7 @@ public class AllTreatmentController {
         try{
             String selectedPatient = this.comboBoxPatientSelection.getSelectionModel().getSelectedItem();
             Patient patient = searchInPatientList(selectedPatient);
-            String selectedCaregiver = this.comboBoxCaregiverSelection.getSelectionModel().getSelectedItem();
-            Caregiver caregiver = searchInCaregiverList(selectedCaregiver);
-            newTreatmentWindow(patient, caregiver);
+            newTreatmentWindow(patient);
         } catch (NullPointerException exception){
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Information");
@@ -232,7 +183,7 @@ public class AllTreatmentController {
         });
     }
 
-    public void newTreatmentWindow(Patient patient, Caregiver caregiver) {
+    public void newTreatmentWindow(Patient patient) {
         try {
             FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/NewTreatmentView.fxml"));
             AnchorPane pane = loader.load();
@@ -242,7 +193,7 @@ public class AllTreatmentController {
             Stage stage = new Stage();
 
             NewTreatmentController controller = loader.getController();
-            controller.initialize(this, stage, patient, caregiver);
+            controller.initialize(this, stage, patient);
 
             stage.setScene(scene);
             stage.setResizable(false);
