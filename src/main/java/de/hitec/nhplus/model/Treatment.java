@@ -17,17 +17,19 @@ public class Treatment {
     private LocalTime end;
     private String description;
     private String remarks;
+    private RecordStatus status;           // New field for status
+    private LocalDate statusChangeDate;    // Date of last status change
 
     /**
-     * Constructor to initiate an object of class <code>Treatment</code> with the given parameter. Use this constructor
-     * to initiate objects, which are not persisted yet, because it will not have a treatment id (tid).
+     * Constructor for new treatments that are not yet persisted.
      *
-     * @param pid         Id of the treated patient.
-     * @param date        Date of the Treatment.
-     * @param begin       Time of the start of the treatment in format "hh:MM"
-     * @param end         Time of the end of the treatment in format "hh:MM".
-     * @param description Description of the treatment.
-     * @param remarks     Remarks to the treatment.
+     * @param pid         ID of the treated patient
+     * @param cid         ID of the caregiver
+     * @param date        Date of the treatment
+     * @param begin       Start time of the treatment
+     * @param end         End time of the treatment
+     * @param description Description of the treatment
+     * @param remarks     Additional remarks about the treatment
      */
     public Treatment(long pid, long cid, LocalDate date, LocalTime begin,
                      LocalTime end, String description, String remarks) {
@@ -38,22 +40,27 @@ public class Treatment {
         this.end = end;
         this.description = description;
         this.remarks = remarks;
+        this.status = RecordStatus.ACTIVE;  // Default status is ACTIVE
+        this.statusChangeDate = LocalDate.now();
     }
 
     /**
-     * Constructor to initiate an object of class <code>Treatment</code> with the given parameter. Use this constructor
-     * to initiate objects, which are already persisted and have a treatment id (tid).
+     * Constructor for already persisted treatments.
      *
-     * @param tid         Id of the treatment.
-     * @param pid         Id of the treated patient.
-     * @param date        Date of the Treatment.
-     * @param begin       Time of the start of the treatment in format "hh:MM"
-     * @param end         Time of the end of the treatment in format "hh:MM".
-     * @param description Description of the treatment.
-     * @param remarks     Remarks to the treatment.
+     * @param tid              ID of the treatment
+     * @param pid              ID of the treated patient
+     * @param cid              ID of the caregiver
+     * @param date             Date of the treatment
+     * @param begin            Start time of the treatment
+     * @param end              End time of the treatment
+     * @param description      Description of the treatment
+     * @param remarks          Additional remarks about the treatment
+     * @param status           Status of the treatment record
+     * @param statusChangeDate Date when the status was last changed
      */
     public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin,
-                     LocalTime end, String description, String remarks) {
+                     LocalTime end, String description, String remarks,
+                     RecordStatus status, LocalDate statusChangeDate) {
         this.tid = tid;
         this.pid = pid;
         this.cid = cid;
@@ -62,7 +69,10 @@ public class Treatment {
         this.end = end;
         this.description = description;
         this.remarks = remarks;
+        this.status = status;
+        this.statusChangeDate = statusChangeDate;
     }
+
 
 
 
@@ -131,14 +141,50 @@ public class Treatment {
         this.remarks = remarks;
     }
 
+    /**
+     * @return The current status of the treatment record
+     */
+    public RecordStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets a new status for the treatment record and updates the status change date
+     *
+     * @param status The new status to set
+     */
+    public void setStatus(RecordStatus status) {
+        this.status = status;
+        this.statusChangeDate = LocalDate.now();
+    }
+
+    /**
+     * @return The date when the status was last changed
+     */
+    public LocalDate getStatusChangeDate() {
+        return statusChangeDate;
+    }
+
+    /**
+     * @return The display name of the current status
+     */
+    public String getStatusDisplayName() {
+        return status.getDisplayName();
+    }
+
+
+    @Override
     public String toString() {
-        return "\nBehandlung" + "\nTID: " + this.tid +
+        return "\nTreatment" + "\nTID: " + this.tid +
                 "\nPID: " + this.pid +
                 "\nCID: " + this.cid +
                 "\nDate: " + this.date +
                 "\nBegin: " + this.begin +
                 "\nEnd: " + this.end +
                 "\nDescription: " + this.description +
-                "\nRemarks: " + this.remarks + "\n";
+                "\nRemarks: " + this.remarks +
+                "\nStatus: " + this.status +
+                "\nStatus Change Date: " + this.statusChangeDate + "\n";
     }
+
 }

@@ -1,11 +1,14 @@
 package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.Main;
+import de.hitec.nhplus.archiving.ArchivingService;
+import de.hitec.nhplus.archiving.TreatmentArchivingService;
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Caregiver;
+import de.hitec.nhplus.model.RecordStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,6 +23,7 @@ import de.hitec.nhplus.model.Treatment;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +59,13 @@ public class AllTreatmentController {
     @FXML
     private Button buttonDelete;
 
+    @FXML
+    private Button buttonLock;
+
+    @FXML
+    private TableColumn<Treatment, String> columnStatus;
+
+    private ArchivingService<Treatment> archivingService;
     private final ObservableList<Treatment> treatments = FXCollections.observableArrayList();
     private TreatmentDao dao;
     private final ObservableList<String> patientSelection = FXCollections.observableArrayList();
@@ -65,8 +76,10 @@ public class AllTreatmentController {
         readAllAndShowInTableView();
         comboBoxPatientSelection.setItems(patientSelection);
         comboBoxPatientSelection.getSelectionModel().select(0);
+        this.archivingService = new TreatmentArchivingService();
 
 
+        this.columnStatus.setCellValueFactory(new PropertyValueFactory<>("statusDisplayName"));
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("tid"));
         this.columnPid.setCellValueFactory(new PropertyValueFactory<>("pid"));
         this.columnCid.setCellValueFactory(new PropertyValueFactory<>("cid"));
@@ -75,6 +88,20 @@ public class AllTreatmentController {
         this.columnEnd.setCellValueFactory(new PropertyValueFactory<>("end"));
         this.columnDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         this.tableView.setItems(this.treatments);
+
+        this.buttonLock.setDisable(true);
+        this.tableView.getSelectionModel().selectedItemProperty().addListener(
+                (observableValue, oldTreatment, newTreatment) -> {
+                    boolean disableDelete = newTreatment == null ||
+                            newTreatment.getStatus() != RecordStatus.ACTIVE;
+
+                    boolean disableLock = newTreatment == null ||
+                            newTreatment.getStatus() != RecordStatus.ACTIVE;
+
+                    AllTreatmentController.this.buttonDelete.setDisable(disableDelete);
+                    AllTreatmentController.this.buttonLock.setDisable(disableLock);
+                });
+
 
         // Disabling the button to delete treatments as long, as no treatment was selected.
         this.buttonDelete.setDisable(true);
@@ -146,16 +173,51 @@ public class AllTreatmentController {
     }
 
     @FXML
-    public void handleDelete() {
+    public void handleLock() {
         int index = this.tableView.getSelectionModel().getSelectedIndex();
-        Treatment t = this.treatments.remove(index);
-        TreatmentDao dao = DaoFactory.getDaoFactory().createTreatmentDao();
-        try {
-            dao.deleteById(t.getTid());
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        Treatment treatment = this.treatments.get(index);
+
+        boolean success = this.archivingService.lockRecord(treatment.getTid());
+
+        if (success) {
+            readAllAndShowInTableView();
         }
     }
+
+
+    public void handleDelete() {
+        int index = this.tableView.getSelectionModel().getSelectedIndex();
+        Treatment treatment = this.treatments.get(index);
+
+        // Check if the record can be deleted
+        if (treatment.getStatus() == RecordStatus.LOCKED) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Treatment cannot be deleted");
+            alert.setContentText("The selected treatment is locked and cannot be deleted.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Check if the treatment is older than 10 years
+        LocalDate treatmentDate = LocalDate.parse(treatment.getDate());
+        if (treatmentDate.plusYears(10).isAfter(LocalDate.now())) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Treatment cannot be deleted");
+            alert.setContentText("The selected treatment is not yet 10 years old and therefore cannot be deleted.");
+            alert.showAndWait();
+            return;
+        }
+
+        // If everything is fine, proceed with deletion
+        boolean success = this.archivingService.deleteRecord(treatment.getTid());
+
+        if (success) {
+            this.treatments.remove(index);
+        }
+    }
+
 
     @FXML
     public void handleNewTreatment() {
