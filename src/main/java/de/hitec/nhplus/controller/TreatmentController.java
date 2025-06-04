@@ -5,6 +5,7 @@ import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Caregiver;
+import de.hitec.nhplus.model.RecordStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -47,6 +48,10 @@ public class TreatmentController {
     @FXML
     private Label labelCaregiverNumber;
 
+    @FXML
+    private Button btnChange;
+
+
     private AllTreatmentController controller;
     private Stage stage;
     private Patient patient;
@@ -82,6 +87,21 @@ public class TreatmentController {
         this.textFieldEnd.setText(this.treatment.getEnd());
         this.textFieldDescription.setText(this.treatment.getDescription());
         this.textAreaRemarks.setText(this.treatment.getRemarks());
+
+        boolean isEditable = (treatment.getStatus() != RecordStatus.LOCKED);
+
+        datePicker.setEditable(isEditable);
+        datePicker.setDisable(!isEditable);
+        textFieldBegin.setEditable(isEditable);
+        textFieldEnd.setEditable(isEditable);
+        textFieldDescription.setEditable(isEditable);
+        textAreaRemarks.setEditable(isEditable);
+        comboBoxCaregiverSelection.setDisable(!isEditable);
+
+        if (btnChange != null) {
+            btnChange.setDisable(!isEditable);
+        }
+
     }
 
     @FXML
