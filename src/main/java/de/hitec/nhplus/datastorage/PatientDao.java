@@ -1,6 +1,7 @@
 package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Patient;
+import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.utils.DateConverter;
 // ... andere Importe ...
 import java.sql.Statement; // Hinzufügen dieses Imports
@@ -8,6 +9,7 @@ import java.sql.Statement; // Hinzufügen dieses Imports
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implements the Interface <code>DaoImp</code>. Overrides methods to generate specific <code>PreparedStatements</code>,
@@ -36,19 +38,21 @@ public class PatientDao extends DaoImp<Patient> {
     protected PreparedStatement getCreateStatement(Patient patient) {
         PreparedStatement preparedStatement = null;
         try {
-            final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber) " +
-                    "VALUES (?, ?, ?, ?, ?)";
-            // Wichtig: Statement.RETURN_GENERATED_KEYS hinzufügen
-            preparedStatement = this.connection.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement = connection.prepareStatement(
+                    "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber, status, status_change_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
             preparedStatement.setString(3, patient.getDateOfBirth());
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+            preparedStatement.setString(6, patient.getStatus().toString());
+            preparedStatement.setString(7, patient.getStatusChangeDate().toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return preparedStatement;
+
     }
 
     /**
@@ -78,13 +82,33 @@ public class PatientDao extends DaoImp<Patient> {
      */
     @Override
     protected Patient getInstanceFromResultSet(ResultSet result) throws SQLException {
-        return new Patient(
-                result.getInt(1),
-                result.getString(2),
-                result.getString(3),
-                DateConverter.convertStringToLocalDate(result.getString(4)),
-                result.getString(5),
-                result.getString(6));
+        RecordStatus status = RecordStatus.ACTIVE;
+        try {
+            status = RecordStatus.valueOf(result.getString("status"));
+        } catch (IllegalArgumentException | SQLException e) {
+        }
+
+        LocalDate statusChangeDate = LocalDate.now();
+        try {
+            String dateString = result.getString("status_change_date");
+            if (dateString != null && !dateString.isEmpty()) {
+                statusChangeDate = LocalDate.parse(dateString);
+            }
+        } catch (Exception e) {
+        }
+
+        Patient patient = new Patient(
+                result.getLong("pid"),
+                result.getString("firstname"),
+                result.getString("surname"),
+                DateConverter.convertStringToLocalDate(result.getString("dateOfBirth")),
+                result.getString("carelevel"),
+                result.getString("roomnumber"),
+                status,
+                statusChangeDate
+        );
+        return patient;
+
     }
 
     /**
@@ -115,14 +139,34 @@ public class PatientDao extends DaoImp<Patient> {
     protected ArrayList<Patient> getListFromResultSet(ResultSet result) throws SQLException {
         ArrayList<Patient> list = new ArrayList<>();
         while (result.next()) {
-            LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
-            Patient patient = new Patient(result.getInt(1), result.getString(2),
-                    result.getString(3), date,
-                    result.getString(5), result.getString(6));
+            RecordStatus status = RecordStatus.ACTIVE;
+            try {
+                status = RecordStatus.valueOf(result.getString("status"));
+            } catch (IllegalArgumentException | SQLException e) {}
+
+            LocalDate statusChangeDate = LocalDate.now();
+            try {
+                String dateString = result.getString("status_change_date");
+                if (dateString != null && !dateString.isEmpty()) {
+                    statusChangeDate = LocalDate.parse(dateString);
+                }
+            } catch (Exception e) {}
+
+            Patient patient = new Patient(
+                    result.getLong("pid"),
+                    result.getString("firstname"),
+                    result.getString("surname"),
+                    DateConverter.convertStringToLocalDate(result.getString("dateOfBirth")),
+                    result.getString("carelevel"),
+                    result.getString("roomnumber"),
+                    status,
+                    statusChangeDate
+            );
             list.add(patient);
         }
         return list;
     }
+
 
     /**
      * Generates a <code>PreparedStatement</code> to update the given patient, identified
@@ -142,14 +186,19 @@ public class PatientDao extends DaoImp<Patient> {
                             "dateOfBirth = ?, " +
                             "carelevel = ?, " +
                             "roomnumber = ?, " +
+                            "status = ?, " +
+                            "status_change_date = ?" +
                             "WHERE pid = ?";
+
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
             preparedStatement.setString(3, patient.getDateOfBirth());
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
-            preparedStatement.setLong(7, patient.getPid());
+            preparedStatement.setString(6, patient.getStatus().toString());
+            preparedStatement.setString(7, patient.getStatusChangeDate().toString());
+            preparedStatement.setLong(8, patient.getPid());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -174,4 +223,41 @@ public class PatientDao extends DaoImp<Patient> {
         }
         return preparedStatement;
     }
+
+    public List<Patient> findByStatus(RecordStatus status) throws SQLException {
+        List<Patient> result = new ArrayList<>();
+        final String SQL = "SELECT * FROM patient WHERE status = ?";
+
+        try (PreparedStatement statement = this.connection.prepareStatement(SQL)) {
+            statement.setString(1, status.toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Patient patient = getInstanceFromResultSet(resultSet);
+                result.add(patient);
+            }
+        }
+
+        return result;
+    }
+
+
+    public List<Patient> findOlderThan(LocalDate date) throws SQLException {
+        List<Patient> result = new ArrayList<>();
+        final String SQL = "SELECT * FROM patient WHERE status_change_date < ?";
+
+        try (PreparedStatement statement = this.connection.prepareStatement(SQL)) {
+            statement.setString(1, date.toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Patient patient = getInstanceFromResultSet(resultSet);
+                result.add(patient);
+            }
+        }
+
+        return result;
+    }
+
+
 }

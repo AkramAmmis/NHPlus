@@ -44,8 +44,7 @@
                <children>
                   <Button fx:id="buttonNewTreament" mnemonicParsing="false" onAction="#handleNewTreatment" prefWidth="200.0" text="neue Behandlung anlegen" GridPane.columnIndex="1" />
                    <ComboBox fx:id="comboBoxPatientSelection" minWidth="160.0" onAction="#handlePatientComboBox" prefWidth="200.0" GridPane.columnIndex="0"/>
-                  <Button fx:id="buttonDelete" mnemonicParsing="false" onAction="#handleDelete" prefWidth="200.0" text="Löschen" GridPane.columnIndex="2" />
-                   <Button fx:id="buttonLock" mnemonicParsing="false" onAction="#handleLock" prefWidth="200.0" text="Lock" GridPane.columnIndex="3" />
+                   <Button fx:id="buttonLock" mnemonicParsing="false" onAction="#handleLock" prefWidth="200.0" text="Sperren" GridPane.columnIndex="2" />
                </children>
                <padding>
                   <Insets right="10.0" />

@@ -55,7 +55,10 @@ public class SetUpDB {
                 "   surname TEXT NOT NULL, " +
                 "   dateOfBirth TEXT NOT NULL, " +
                 "   carelevel TEXT NOT NULL, " +
-                "   roomnumber TEXT NOT NULL " +
+                "   roomnumber TEXT NOT NULL, " +
+                "   status TEXT DEFAULT 'ACTIVE', " +
+                "   status_change_date TEXT " +
+
                 ");";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
@@ -69,7 +72,9 @@ public class SetUpDB {
                 "   cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "   firstname TEXT NOT NULL, " +
                 "   surname TEXT NOT NULL, " +
-                "   telephone TEXT NOT NULL" +
+                "   telephone TEXT NOT NULL, " +
+                "   status TEXT DEFAULT 'ACTIVE', " +
+                "   status_change_date TEXT " +
                 ");";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
