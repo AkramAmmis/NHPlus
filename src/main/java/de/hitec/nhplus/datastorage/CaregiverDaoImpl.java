@@ -1,14 +1,17 @@
 package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Caregiver;
+import de.hitec.nhplus.model.RecordStatus;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao {
 
@@ -55,13 +58,16 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                 createTable();
             }
 
-            final String SQL = "INSERT INTO caregiver (firstname, surname, telephone, username, password) VALUES (?, ?, ?, ?, ?)";
-            preparedStatement = this.connection.prepareStatement(SQL);
+            final String SQL = "INSERT INTO caregiver (firstname, surname, telephone, username, password, status, status_change_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            preparedStatement = this.connection.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, caregiver.getFirstName());
             preparedStatement.setString(2, caregiver.getSurname());
             preparedStatement.setString(3, caregiver.getTelephone());
             preparedStatement.setString(4, username);
             preparedStatement.setString(5, encryptPassword(password));
+            preparedStatement.setString(6, caregiver.getStatus().toString());
+            preparedStatement.setString(7, caregiver.getStatusChangeDate().toString());
+
 
             System.out.println("PreparedStatement erfolgreich erstellt: " + preparedStatement);
         } catch (SQLException exception) {
@@ -102,13 +108,46 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
 
     @Override
     protected Caregiver getInstanceFromResultSet(ResultSet result) throws SQLException {
+        RecordStatus status = RecordStatus.ACTIVE;
+        try {
+            status = RecordStatus.valueOf(result.getString("status"));
+        } catch (IllegalArgumentException | SQLException e) {
+            // Falls status nicht existiert oder ungültig ist, verwende ACTIVE als Standardwert
+        }
+
+        LocalDate statusChangeDate = LocalDate.now();
+        try {
+            String dateString = result.getString("status_change_date");
+            if (dateString != null && !dateString.isEmpty()) {
+                statusChangeDate = LocalDate.parse(dateString);
+            }
+        } catch (Exception e) {
+            // Falls status_change_date nicht existiert oder ungültig ist, verwende heutiges Datum
+        }
+
+        String username = "";
+        try {
+            username = result.getString("username");
+        } catch (SQLException e) {
+            // Falls username nicht existiert, verwende leeren String
+        }
+
+        String password = "";
+        try {
+            password = result.getString("password");
+        } catch (SQLException e) {
+            // Falls password nicht existiert, verwende leeren String
+        }
+
         return new Caregiver(
                 result.getLong("cid"),
-                result.getString("username"),
-                result.getString("password"),
+                username,
+                password,
                 result.getString("firstname"),
                 result.getString("surname"),
-                result.getString("telephone")
+                result.getString("telephone"),
+                status,
+                statusChangeDate
         );
     }
 
@@ -128,13 +167,46 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     protected ArrayList<Caregiver> getListFromResultSet(ResultSet result) throws SQLException {
         ArrayList<Caregiver> list = new ArrayList<>();
         while (result.next()) {
+            RecordStatus status = RecordStatus.ACTIVE;
+            try {
+                status = RecordStatus.valueOf(result.getString("status"));
+            } catch (IllegalArgumentException | SQLException e) {
+                // Falls status nicht existiert oder ungültig ist, verwende ACTIVE als Standardwert
+            }
+
+            LocalDate statusChangeDate = LocalDate.now();
+            try {
+                String dateString = result.getString("status_change_date");
+                if (dateString != null && !dateString.isEmpty()) {
+                    statusChangeDate = LocalDate.parse(dateString);
+                }
+            } catch (Exception e) {
+                // Falls status_change_date nicht existiert oder ungültig ist, verwende heutiges Datum
+            }
+
+            String username = "";
+            try {
+                username = result.getString("username");
+            } catch (SQLException e) {
+                // Falls username nicht existiert, verwende leeren String
+            }
+
+            String password = "";
+            try {
+                password = result.getString("password");
+            } catch (SQLException e) {
+                // Falls password nicht existiert, verwende leeren String
+            }
+
             Caregiver caregiver = new Caregiver(
                     result.getLong("cid"),
-                    result.getString("username"),
-                    result.getString("password"),
+                    username,
+                    password,
                     result.getString("firstname"),
                     result.getString("surname"),
-                    result.getString("telephone")
+                    result.getString("telephone"),
+                    status,
+                    statusChangeDate
             );
             list.add(caregiver);
         }
@@ -145,7 +217,7 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     protected PreparedStatement getUpdateStatement(Caregiver caregiver) {
         PreparedStatement preparedStatement = null;
         try {
-            final String SQL = "UPDATE caregiver SET username = ?, password = ?, firstname = ?, surname = ?, telephone = ? WHERE cid = ?";
+            final String SQL = "UPDATE caregiver SET username = ?, password = ?, firstname = ?, surname = ?, telephone = ?, status = ?, status_change_date = ? WHERE cid = ?";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caregiver.getUsername());
 
@@ -159,7 +231,10 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             preparedStatement.setString(3, caregiver.getFirstName());
             preparedStatement.setString(4, caregiver.getSurname());
             preparedStatement.setString(5, caregiver.getTelephone());
-            preparedStatement.setLong(6, caregiver.getCid());
+            preparedStatement.setString(6, caregiver.getStatus().toString());
+            preparedStatement.setString(7, caregiver.getStatusChangeDate().toString());
+            preparedStatement.setLong(8, caregiver.getCid());
+
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -196,6 +271,52 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             exception.printStackTrace();
         }
         return preparedStatement;
+    }
+
+    /**
+     * Findet alle Caregivers mit einem bestimmten Status
+     * @param status Status nach dem gesucht wird
+     * @return Liste der gefundenen Caregivers
+     * @throws SQLException bei Datenbankproblemen
+     */
+    public List<Caregiver> findByStatus(RecordStatus status) throws SQLException {
+        List<Caregiver> result = new ArrayList<>();
+        final String SQL = "SELECT * FROM caregiver WHERE status = ?";
+
+        try (PreparedStatement statement = this.connection.prepareStatement(SQL)) {
+            statement.setString(1, status.toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Caregiver caregiver = getInstanceFromResultSet(resultSet);
+                result.add(caregiver);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Findet alle Caregivers, deren Status älter als das angegebene Datum ist
+     * @param date Das Vergleichsdatum
+     * @return Liste der gefundenen Caregivers
+     * @throws SQLException bei Datenbankproblemen
+     */
+    public List<Caregiver> findOlderThan(LocalDate date) throws SQLException {
+        List<Caregiver> result = new ArrayList<>();
+        final String SQL = "SELECT * FROM caregiver WHERE status_change_date < ?";
+
+        try (PreparedStatement statement = this.connection.prepareStatement(SQL)) {
+            statement.setString(1, date.toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Caregiver caregiver = getInstanceFromResultSet(resultSet);
+                result.add(caregiver);
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -249,7 +370,9 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                         "password TEXT, " +
                         "firstname TEXT NOT NULL, " +
                         "surname TEXT NOT NULL, " +
-                        "telephone TEXT)";
+                        "telephone TEXT, " +
+                        "status TEXT, " +
+                        "status_change_date TEXT)";
 
                 System.out.println("Führe SQL aus: " + createTableSQL);
                 st.executeUpdate(createTableSQL);
@@ -280,6 +403,34 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                         System.out.println("Spalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
                     } catch (SQLException ex) {
                         System.err.println("Fehler beim Hinzufügen der Spalten: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+                }
+
+                try {
+                    ResultSet columns = connection.getMetaData().getColumns(null, null, "caregiver", "status");
+                    boolean statusExists = columns.next();
+                    columns.close();
+
+                    if (!statusExists) {
+                        System.out.println("Spalten 'status' und 'status_change_date' fehlen. Füge hinzu...");
+                        st.executeUpdate("ALTER TABLE caregiver ADD COLUMN status TEXT");
+                        st.executeUpdate("ALTER TABLE caregiver ADD COLUMN status_change_date TEXT");
+
+                        st.executeUpdate("UPDATE caregiver SET status = 'ACTIVE', status_change_date = date('now') WHERE status IS NULL");
+                        System.out.println("Statusspalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Fehler beim Prüfen der Statusspalten: " + e.getMessage());
+                    try {
+                        System.out.println("Versuche, Spalten 'status' und 'status_change_date' hinzuzufügen...");
+                        st.executeUpdate("ALTER TABLE caregiver ADD COLUMN status TEXT");
+                        st.executeUpdate("ALTER TABLE caregiver ADD COLUMN status_change_date TEXT");
+
+                        st.executeUpdate("UPDATE caregiver SET status = 'ACTIVE', status_change_date = date('now') WHERE status IS NULL");
+                        System.out.println("Statusspalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
+                    } catch (SQLException ex) {
+                        System.err.println("Fehler beim Hinzufügen der Statusspalten: " + ex.getMessage());
                         ex.printStackTrace();
                     }
                 }

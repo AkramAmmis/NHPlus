@@ -1,5 +1,6 @@
 package de.hitec.nhplus.datastorage;
 
+import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.model.Treatment;
 import de.hitec.nhplus.utils.DateConverter;
 
@@ -17,23 +18,33 @@ public class TreatmentDao extends DaoImp<Treatment> {
 
     @Override
     protected PreparedStatement getCreateStatement(Treatment treatment) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement statement = null;
         try {
-            final String SQL = "INSERT INTO treatment (pid, cid, treatment_date, begin, end, description, remark) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
-            preparedStatement = this.connection.prepareStatement(SQL);
-            preparedStatement.setLong(1, treatment.getPid());
-            preparedStatement.setLong(2, treatment.getCid());
-            preparedStatement.setString(3, treatment.getDate());
-            preparedStatement.setString(4, treatment.getBegin());
-            preparedStatement.setString(5, treatment.getEnd());
-            preparedStatement.setString(6, treatment.getDescription());
-            preparedStatement.setString(7, treatment.getRemarks());
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+            statement = connection.prepareStatement(
+                    "INSERT INTO treatment (pid, cid, treatment_date, begin, end, description, remark, status, status_change_date) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            statement.setLong(1, treatment.getPid());
+            statement.setLong(2, treatment.getCid());
+            statement.setString(3, treatment.getDate());
+            statement.setString(4, treatment.getBegin());
+            statement.setString(5, treatment.getEnd());
+            statement.setString(6, treatment.getDescription());
+            statement.setString(7, treatment.getRemarks());
+            statement.setString(8, treatment.getStatus().name());
+            statement.setString(9, treatment.getStatusChangeDate().toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return preparedStatement;
+        return statement;
     }
+
+
+    /**
+     * Generates a <code>PreparedStatement</code> to query a treatment by a given treatment id (tid).
+     *
+     * @param tid Treatment id to query.
+     * @return <code>PreparedStatement</code> to query the treatment.
+     */
 
     @Override
     protected PreparedStatement getReadByIDStatement(long tid) {
@@ -50,11 +61,32 @@ public class TreatmentDao extends DaoImp<Treatment> {
 
     @Override
     protected Treatment getInstanceFromResultSet(ResultSet result) throws SQLException {
-        LocalDate date = DateConverter.convertStringToLocalDate(result.getString(3));
-        LocalTime begin = DateConverter.convertStringToLocalTime(result.getString(4));
-        LocalTime end = DateConverter.convertStringToLocalTime(result.getString(5));
-        return new Treatment(result.getLong(1), result.getLong(2),result.getLong(3),
-                date, begin, end, result.getString(7), result.getString(8));
+        LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
+        LocalTime begin = DateConverter.convertStringToLocalTime(result.getString(5));
+        LocalTime end = DateConverter.convertStringToLocalTime(result.getString(6));
+
+        RecordStatus status = RecordStatus.ACTIVE; // Default if not in DB
+        if (result.getString(9) != null) {
+            status = RecordStatus.valueOf(result.getString(9));
+        }
+
+        LocalDate statusChangeDate = LocalDate.now(); // Default if not in DB
+        if (result.getString(10) != null) {
+            statusChangeDate = DateConverter.convertStringToLocalDate(result.getString(10));
+        }
+
+        return new Treatment(
+                result.getLong(1),
+                result.getLong(2),
+                result.getLong(3),
+                date,
+                begin,
+                end,
+                result.getString(7),
+                result.getString(8),
+                status,
+                statusChangeDate
+        );
     }
 
     @Override
@@ -76,8 +108,29 @@ public class TreatmentDao extends DaoImp<Treatment> {
             LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
             LocalTime begin = DateConverter.convertStringToLocalTime(result.getString(5));
             LocalTime end = DateConverter.convertStringToLocalTime(result.getString(6));
-            Treatment treatment = new Treatment(result.getLong(1), result.getLong(2), result.getLong(3),
-                    date, begin, end, result.getString(7), result.getString(8));
+
+            RecordStatus status = RecordStatus.ACTIVE; // Default if not in DB
+            if (result.getString(9) != null) {
+                status = RecordStatus.valueOf(result.getString(9));
+            }
+
+            LocalDate statusChangeDate = LocalDate.now(); // Default if not in DB
+            if (result.getString(10) != null) {
+                statusChangeDate = DateConverter.convertStringToLocalDate(result.getString(10));
+            }
+
+            Treatment treatment = new Treatment(
+                    result.getLong(1),
+                    result.getLong(2),
+                    result.getLong(3),
+                    date,
+                    begin,
+                    end,
+                    result.getString(7),
+                    result.getString(8),
+                    status,
+                    statusChangeDate
+            );
             list.add(treatment);
         }
         return list;
@@ -143,32 +196,33 @@ public class TreatmentDao extends DaoImp<Treatment> {
 
     @Override
     protected PreparedStatement getUpdateStatement(Treatment treatment) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement statement = null;
         try {
-            final String SQL =
-                    "UPDATE treatment SET " +
-                            "pid = ?, " +
-                            "cid= ?," +
-                            "treatment_date = ?, " +
-                            "begin = ?, " +
-                            "end = ?, " +
-                            "description = ?, " +
-                            "remark = ? " +
-                            "WHERE tid = ?";
-            preparedStatement = this.connection.prepareStatement(SQL);
-            preparedStatement.setLong(1, treatment.getPid());
-            preparedStatement.setLong(2, treatment.getCid());
-            preparedStatement.setString(3, treatment.getDate());
-            preparedStatement.setString(4, treatment.getBegin());
-            preparedStatement.setString(5, treatment.getEnd());
-            preparedStatement.setString(6, treatment.getDescription());
-            preparedStatement.setString(7, treatment.getRemarks());
-            preparedStatement.setLong(8, treatment.getTid());
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+            statement = connection.prepareStatement(
+                    "UPDATE treatment SET pid = ?, cid = ?, treatment_date = ?, begin = ?, end = ?, " +
+                            "description = ?, remark = ?, status = ?, status_change_date = ? WHERE tid = ?");
+            statement.setLong(1, treatment.getPid());
+            statement.setLong(2, treatment.getCid());
+            statement.setString(3, treatment.getDate());
+            statement.setString(4, treatment.getBegin());
+            statement.setString(5, treatment.getEnd());
+            statement.setString(6, treatment.getDescription());
+            statement.setString(7, treatment.getRemarks());
+            statement.setString(8, treatment.getStatus().name());
+            statement.setString(9, treatment.getStatusChangeDate().toString());
+            statement.setLong(10, treatment.getTid());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return preparedStatement;
+        return statement;
     }
+
+    /**
+     * Generates a <code>PreparedStatement</code> to delete a treatment with the given id.
+     *
+     * @param tid Id of the Treatment to delete.
+     * @return <code>PreparedStatement</code> to delete treatment with the given id.
+     */
 
     @Override
     protected PreparedStatement getDeleteStatement(long tid) {
@@ -183,4 +237,49 @@ public class TreatmentDao extends DaoImp<Treatment> {
         }
         return preparedStatement;
     }
+
+    /**
+     * Finds all treatments with a specific status
+     * @param status The status to search for
+     * @return List of found treatments
+     * @throws SQLException on database problems
+     */
+    public List<Treatment> findByStatus(RecordStatus status) throws SQLException {
+        List<Treatment> result = new ArrayList<>();
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement(
+                    "SELECT * FROM treatment WHERE status = ?");
+            statement.setString(1, status.name());
+            ResultSet resultSet = statement.executeQuery();
+            result = getListFromResultSet(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return result;
+    }
+
+    /**
+     * Finds all treatments that are older than the specified date
+     * @param date The comparison date
+     * @return List of found treatments
+     * @throws SQLException on database problems
+     */
+    public List<Treatment> findOlderThan(LocalDate date) throws SQLException {
+        List<Treatment> result = new ArrayList<>();
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement(
+                    "SELECT * FROM treatment WHERE treatment_date < ?");
+            statement.setString(1, date.toString());
+            ResultSet resultSet = statement.executeQuery();
+            result = getListFromResultSet(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return result;
+    }
+
 }
