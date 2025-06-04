@@ -372,6 +372,7 @@ public class AllTreatmentController {
             AnchorPane pane = loader.load();
             Scene scene = new Scene(pane);
 
+
             // The primary stage should stay in the background
             Stage stage = new Stage();
             TreatmentController controller = loader.getController();

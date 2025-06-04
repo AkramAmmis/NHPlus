@@ -12,18 +12,8 @@ import java.sql.Statement;
 import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalDate;
 import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalTime;
 
-/**
- * Call static class provides to static methods to set up and wipe the database. It uses the class ConnectionBuilder
- * and its path to build up the connection to the database. The class is executable. Executing the class will build
- * up a connection to the database and calls setUpDb() to wipe the database, build up a clean database and fill the
- * database with some test data.
- */
 public class SetUpDB {
 
-    /**
-     * This method wipes the database by dropping the tables. Then the method calls DDL statements to build it up from
-     * scratch and DML statements to fill the database with hard coded test data.
-     */
     public static void setUpDb() {
         Connection connection = ConnectionBuilder.getConnection();
         SetUpDB.wipeDb(connection);
@@ -35,9 +25,6 @@ public class SetUpDB {
         SetUpDB.setUpTreatments();
     }
 
-    /**
-     * This method wipes the database by dropping the tables.
-     */
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
             statement.execute("DROP TABLE IF EXISTS treatment");
@@ -129,7 +116,8 @@ public class SetUpDB {
         try {
             CaregiverDao dao = DaoFactory.getDaoFactory().createCaregiverDAO();
 
-            // Neue Caregiver mit Benutzernamen und Passwort erstellen
+
+            // Neue Caregiver-Instanzen mit Username und Passwort erstellen
             dao.create(new Caregiver(0, "hneumann", "password123", "Hans", "Neumann", "0123456789"));
             dao.create(new Caregiver(0, "lneubauer", "password123", "Luise", "Neubauer", "02314457893"));
             dao.create(new Caregiver(0, "jmeyer", "password123", "Jonas", "Meyer", "0173228845"));
@@ -192,4 +180,6 @@ public class SetUpDB {
     public static void main(String[] args) {
         SetUpDB.setUpDb();
     }
+
 }
+

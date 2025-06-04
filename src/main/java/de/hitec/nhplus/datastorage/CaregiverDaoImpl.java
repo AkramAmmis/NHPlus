@@ -68,6 +68,7 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             preparedStatement.setString(6, caregiver.getStatus().toString());
             preparedStatement.setString(7, caregiver.getStatusChangeDate().toString());
 
+
             System.out.println("PreparedStatement erfolgreich erstellt: " + preparedStatement);
         } catch (SQLException exception) {
             System.err.println("Fehler beim Erstellen des PreparedStatements: " + exception.getMessage());
@@ -233,6 +234,7 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             preparedStatement.setString(6, caregiver.getStatus().toString());
             preparedStatement.setString(7, caregiver.getStatusChangeDate().toString());
             preparedStatement.setLong(8, caregiver.getCid());
+
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -377,8 +379,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                 System.out.println("Tabelle 'caregiver' erfolgreich erstellt.");
             } else {
                 System.out.println("Tabelle 'caregiver' existiert bereits.");
-
-                // Überprüfe und füge username und password Spalten hinzu, falls sie fehlen
                 try {
                     ResultSet columns = connection.getMetaData().getColumns(null, null, "caregiver", "username");
                     boolean usernameExists = columns.next();
@@ -407,7 +407,6 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                     }
                 }
 
-                // Überprüfe und füge status und status_change_date Spalten hinzu, falls sie fehlen
                 try {
                     ResultSet columns = connection.getMetaData().getColumns(null, null, "caregiver", "status");
                     boolean statusExists = columns.next();

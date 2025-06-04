@@ -28,6 +28,7 @@ import java.util.Optional;
  * The AllPatientController contains the entire logic of the patient view.
  * It determines which data is displayed and how to react to events.
  */
+
 public class AllPatientController {
     @FXML
     private TableView<Patient> tableView;
@@ -66,6 +67,7 @@ public class AllPatientController {
     private PatientDao dao;
     private ArchivingService<Patient> archivingService;
 
+
     /**
      * Initializes the controller. This method is called after all FXML fields are initialized.
      * Sets up table columns, loads data, and configures event listeners.
@@ -86,6 +88,7 @@ public class AllPatientController {
         this.columnCareLevel.setCellFactory(TextFieldTableCell.forTableColumn());
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
+
 
         // Set up status column if available in the view
         if (this.columnStatus != null) {
@@ -115,6 +118,7 @@ public class AllPatientController {
                 AllPatientController.this.buttonDelete.setDisable(isDisabled);
             }
         });
+
 
         // Configure validation for new patient input
         this.buttonAdd.setDisable(true);
@@ -290,6 +294,7 @@ public class AllPatientController {
     /**
      * Handles the lock button action. Locks the selected patient record.
      */
+
     @FXML
     public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
@@ -413,5 +418,6 @@ public class AllPatientController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+
     }
 }

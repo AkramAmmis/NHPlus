@@ -23,6 +23,7 @@ public class Treatment {
     private RecordStatus status;           // Status des Datensatzes
     private LocalDate statusChangeDate;    // Datum der letzten Statusänderung
 
+
     /**
      * Constructor for new treatments that are not yet persisted.
      *
@@ -45,6 +46,7 @@ public class Treatment {
         this.status = RecordStatus.ACTIVE;  // Standardstatus ist ACTIVE
         this.statusChangeDate = LocalDate.now();
     }
+
 
     /**
      * Constructor for already persisted treatments (basic version).

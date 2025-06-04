@@ -1,0 +1,28 @@
+/* Stil für die Toolbar */
+.tool-bar {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 5 10 5 10;
+}
+
+/* Stil für den Abmelde-Button */
+#logoutButton {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 5 15 5 15;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+#logoutButton:hover {
+    -fx-background-color: #c0392b;
+    -fx-cursor: hand;
+}
+
+/* Stil für den Benutzername-Label */
+#usernameLabel {
+    -fx-font-weight: bold;
+    -fx-padding: 5 10 5 0;
+}

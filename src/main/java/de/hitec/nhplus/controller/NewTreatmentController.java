@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.Treatment;
 import de.hitec.nhplus.utils.DateConverter;
+import de.hitec.nhplus.utils.AuthorizationManager;
 import javafx.util.StringConverter;
 
 import java.sql.SQLException;
@@ -122,6 +123,11 @@ public class NewTreatmentController {
 
     @FXML
     public void handleAdd(){
+        if (!AuthorizationManager.getInstance().isAdmin()) {
+            new Alert(Alert.AlertType.ERROR, "Nur Administratoren können neue Pflege hinzufügen.").showAndWait();
+            return;
+        }
+
         LocalDate date = this.datePicker.getValue();
         LocalTime begin = DateConverter.convertStringToLocalTime(textFieldBegin.getText());
         LocalTime end = DateConverter.convertStringToLocalTime(textFieldEnd.getText());
