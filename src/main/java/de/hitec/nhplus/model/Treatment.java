@@ -8,6 +8,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import de.hitec.nhplus.datastorage.DaoFactory;
 
+/**
+ * Represents a treatment of a patient by a caregiver.
+ */
 public class Treatment {
     private long tid;
     private final long pid;
@@ -17,8 +20,8 @@ public class Treatment {
     private LocalTime end;
     private String description;
     private String remarks;
-    private RecordStatus status;           // New field for status
-    private LocalDate statusChangeDate;    // Date of last status change
+    private RecordStatus status;           // Status des Datensatzes
+    private LocalDate statusChangeDate;    // Datum der letzten Statusänderung
 
     /**
      * Constructor for new treatments that are not yet persisted.
@@ -31,8 +34,7 @@ public class Treatment {
      * @param description Description of the treatment
      * @param remarks     Additional remarks about the treatment
      */
-    public Treatment(long pid, long cid, LocalDate date, LocalTime begin,
-                     LocalTime end, String description, String remarks) {
+    public Treatment(long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
         this.pid = pid;
         this.cid = cid;
         this.date = date;
@@ -40,12 +42,37 @@ public class Treatment {
         this.end = end;
         this.description = description;
         this.remarks = remarks;
-        this.status = RecordStatus.ACTIVE;  // Default status is ACTIVE
+        this.status = RecordStatus.ACTIVE;  // Standardstatus ist ACTIVE
         this.statusChangeDate = LocalDate.now();
     }
 
     /**
-     * Constructor for already persisted treatments.
+     * Constructor for already persisted treatments (basic version).
+     *
+     * @param tid         ID of the treatment
+     * @param pid         ID of the treated patient
+     * @param cid         ID of the caregiver
+     * @param date        Date of the treatment
+     * @param begin       Start time of the treatment
+     * @param end         End time of the treatment
+     * @param description Description of the treatment
+     * @param remarks     Additional remarks about the treatment
+     */
+    public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
+        this.tid = tid;
+        this.pid = pid;
+        this.cid = cid;
+        this.date = date;
+        this.begin = begin;
+        this.end = end;
+        this.description = description;
+        this.remarks = remarks;
+        this.status = RecordStatus.ACTIVE;  // Standardstatus ist ACTIVE
+        this.statusChangeDate = LocalDate.now();
+    }
+
+    /**
+     * Constructor for already persisted treatments with status information.
      *
      * @param tid              ID of the treatment
      * @param pid              ID of the treated patient
@@ -72,10 +99,6 @@ public class Treatment {
         this.status = status;
         this.statusChangeDate = statusChangeDate;
     }
-
-
-
-
 
     public long getTid() {
         return tid;
@@ -111,18 +134,20 @@ public class Treatment {
         return end.toString();
     }
 
-    public void setCid(long cid) { this.cid = cid; }
+    public void setCid(long cid) {
+        this.cid = cid;
+    }
 
     public void setDate(String date) {
         this.date = DateConverter.convertStringToLocalDate(date);
     }
 
     public void setBegin(String begin) {
-        this.begin = DateConverter.convertStringToLocalTime(begin);;
+        this.begin = DateConverter.convertStringToLocalTime(begin);
     }
 
     public void setEnd(String end) {
-        this.end = DateConverter.convertStringToLocalTime(end);;
+        this.end = DateConverter.convertStringToLocalTime(end);
     }
 
     public String getDescription() {
@@ -172,7 +197,6 @@ public class Treatment {
         return status.getDisplayName();
     }
 
-
     @Override
     public String toString() {
         return "\nTreatment" + "\nTID: " + this.tid +
@@ -186,5 +210,4 @@ public class Treatment {
                 "\nStatus: " + this.status +
                 "\nStatus Change Date: " + this.statusChangeDate + "\n";
     }
-
 }

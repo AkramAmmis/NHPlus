@@ -1,4 +1,3 @@
-
 package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.Main;
@@ -67,6 +66,9 @@ public class AllTreatmentController {
     @FXML
     private Button buttonLock;
 
+    @FXML
+    private Button buttonDelete;
+
     private ArchivingService<Treatment> archivingService;
     private final ObservableList<Treatment> treatments = FXCollections.observableArrayList();
     private TreatmentDao dao;
@@ -100,13 +102,29 @@ public class AllTreatmentController {
         this.tableView.setRowFactory(getRowFactory());
 
         // Configure buttons
-        this.buttonLock.setDisable(true);
+        if (this.buttonLock != null) {
+            this.buttonLock.setDisable(true);
+        }
+        if (this.buttonDelete != null) {
+            this.buttonDelete.setDisable(true);
+        }
+
         this.tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTreatment, newTreatment) -> {
-                    boolean disableLock = newTreatment == null ||
-                            newTreatment.getStatus() != RecordStatus.ACTIVE;
+                    // Button activation/deactivation logic
+                    boolean noSelection = newTreatment == null;
 
-                    AllTreatmentController.this.buttonLock.setDisable(disableLock);
+                    // Lock button is only enabled for active records
+                    if (this.buttonLock != null) {
+                        boolean disableLock = noSelection ||
+                                (newTreatment != null && newTreatment.getStatus() != RecordStatus.ACTIVE);
+                        this.buttonLock.setDisable(disableLock);
+                    }
+
+                    // Delete button is enabled whenever a record is selected
+                    if (this.buttonDelete != null) {
+                        this.buttonDelete.setDisable(noSelection);
+                    }
                 });
 
         // Create patient combo box data
@@ -152,7 +170,7 @@ public class AllTreatmentController {
                 // Check if the treatment should be deleted (10 years since lock or treatment date)
                 LocalDate deletionDate = null;
 
-                if (treatment.getStatus() == RecordStatus.LOCKED) {
+                if (treatment.getStatus() == RecordStatus.LOCKED && treatment.getStatusChangeDate() != null) {
                     deletionDate = treatment.getStatusChangeDate().plusYears(10);
                 } else {
                     LocalDate treatmentDate = LocalDate.parse(treatment.getDate());
@@ -170,6 +188,9 @@ public class AllTreatmentController {
         } catch (SQLException e) {
             e.printStackTrace();
             showErrorMessage("Automatic Deletion Error", "Failed to check for records to delete automatically.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Keine Meldung, falls das Archivierungssystem nicht verfügbar ist
         }
     }
 
@@ -281,6 +302,7 @@ public class AllTreatmentController {
             }
         }
     }
+    
 
     /**
      * Handles the new treatment button action. Opens a window to create a new treatment.

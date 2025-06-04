@@ -29,49 +29,36 @@ import java.util.Optional;
  * It determines which data is displayed and how to react to events.
  */
 public class AllPatientController {
-
     @FXML
     private TableView<Patient> tableView;
-
     @FXML
     private TableColumn<Patient, Integer> columnId;
-
     @FXML
     private TableColumn<Patient, String> columnFirstName;
-
     @FXML
     private TableColumn<Patient, String> columnSurname;
-
     @FXML
     private TableColumn<Patient, String> columnDateOfBirth;
-
     @FXML
     private TableColumn<Patient, String> columnCareLevel;
-
     @FXML
     private TableColumn<Patient, String> columnRoomNumber;
-
     @FXML
     private TableColumn<Patient, String> columnStatus;
-
     @FXML
     private Button buttonLock;
-
+    @FXML
+    private Button buttonDelete;
     @FXML
     private Button buttonAdd;
-
     @FXML
     private TextField textFieldSurname;
-
     @FXML
     private TextField textFieldFirstName;
-
     @FXML
     private TextField textFieldDateOfBirth;
-
     @FXML
     private TextField textFieldCareLevel;
-
     @FXML
     private TextField textFieldRoomNumber;
 
@@ -84,7 +71,7 @@ public class AllPatientController {
      * Sets up table columns, loads data, and configures event listeners.
      */
     public void initialize() {
-        readAllAndShowInTableView();
+        this.readAllAndShowInTableView();
         this.archivingService = new PatientArchivingService();
 
         // Configure table columns
@@ -99,7 +86,11 @@ public class AllPatientController {
         this.columnCareLevel.setCellFactory(TextFieldTableCell.forTableColumn());
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
-        this.columnStatus.setCellValueFactory(new PropertyValueFactory<>("statusDisplayName"));
+
+        // Set up status column if available in the view
+        if (this.columnStatus != null) {
+            this.columnStatus.setCellValueFactory(new PropertyValueFactory<>("statusDisplayName"));
+        }
 
         // Display data
         this.tableView.setItems(this.patients);
@@ -109,9 +100,20 @@ public class AllPatientController {
 
         // Configure buttons
         this.buttonLock.setDisable(true);
+        this.buttonDelete.setDisable(true);
+
+        // Add listeners for button activation/deactivation
         this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldPatient, newPatient) -> {
             boolean isDisabled = newPatient == null;
-            AllPatientController.this.buttonLock.setDisable(isDisabled || newPatient.getStatus() != RecordStatus.ACTIVE);
+            // Only enable lock button if record is active
+            if (buttonLock != null) {
+                AllPatientController.this.buttonLock.setDisable(isDisabled ||
+                        (newPatient != null && newPatient.getStatus() != RecordStatus.ACTIVE));
+            }
+            // Delete button is enabled if a record is selected
+            if (buttonDelete != null) {
+                AllPatientController.this.buttonDelete.setDisable(isDisabled);
+            }
         });
 
         // Configure validation for new patient input
@@ -162,6 +164,11 @@ public class AllPatientController {
             List<Patient> allPatients = patientDao.readAll();
 
             for (Patient patient : allPatients) {
+                // Skip patients without status change date
+                if (patient.getStatusChangeDate() == null) {
+                    continue;
+                }
+
                 // Check if 10 years have passed since the patient was locked or last updated
                 LocalDate deletionDate = patient.getStatusChangeDate().plusYears(10);
 
@@ -189,18 +196,17 @@ public class AllPatientController {
         } catch (SQLException e) {
             e.printStackTrace();
             showErrorMessage("Automatic Deletion Error", "Failed to check for records to delete automatically.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Keine Meldung, falls das Archivierungssystem nicht verfügbar ist
         }
     }
 
-    /**
-     * Handles editing of the first name column.
-     *
-     * @param event The cell edit event
-     */
     @FXML
     public void handleOnEditFirstname(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
-        if (patient.getStatus() != RecordStatus.ACTIVE) {
+        // Check if editing is allowed (status check)
+        if (patient.getStatus() != null && patient.getStatus() != RecordStatus.ACTIVE) {
             showErrorMessage("Edit not possible", "This record is locked or deleted and cannot be edited.");
             readAllAndShowInTableView();
             return;
@@ -209,15 +215,11 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
-    /**
-     * Handles editing of the surname column.
-     *
-     * @param event The cell edit event
-     */
     @FXML
     public void handleOnEditSurname(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
-        if (patient.getStatus() != RecordStatus.ACTIVE) {
+        // Check if editing is allowed (status check)
+        if (patient.getStatus() != null && patient.getStatus() != RecordStatus.ACTIVE) {
             showErrorMessage("Edit not possible", "This record is locked or deleted and cannot be edited.");
             readAllAndShowInTableView();
             return;
@@ -226,15 +228,11 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
-    /**
-     * Handles editing of the date of birth column.
-     *
-     * @param event The cell edit event
-     */
     @FXML
     public void handleOnEditDateOfBirth(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
-        if (patient.getStatus() != RecordStatus.ACTIVE) {
+        // Check if editing is allowed (status check)
+        if (patient.getStatus() != null && patient.getStatus() != RecordStatus.ACTIVE) {
             showErrorMessage("Edit not possible", "This record is locked or deleted and cannot be edited.");
             readAllAndShowInTableView();
             return;
@@ -243,15 +241,11 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
-    /**
-     * Handles editing of the care level column.
-     *
-     * @param event The cell edit event
-     */
     @FXML
     public void handleOnEditCareLevel(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
-        if (patient.getStatus() != RecordStatus.ACTIVE) {
+        // Check if editing is allowed (status check)
+        if (patient.getStatus() != null && patient.getStatus() != RecordStatus.ACTIVE) {
             showErrorMessage("Edit not possible", "This record is locked or deleted and cannot be edited.");
             readAllAndShowInTableView();
             return;
@@ -260,15 +254,11 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
-    /**
-     * Handles editing of the room number column.
-     *
-     * @param event The cell edit event
-     */
     @FXML
     public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
-        if (patient.getStatus() != RecordStatus.ACTIVE) {
+        // Check if editing is allowed (status check)
+        if (patient.getStatus() != null && patient.getStatus() != RecordStatus.ACTIVE) {
             showErrorMessage("Edit not possible", "This record is locked or deleted and cannot be edited.");
             readAllAndShowInTableView();
             return;
@@ -277,11 +267,6 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
-    /**
-     * Updates a patient in the database.
-     *
-     * @param event The cell edit event containing the patient to update
-     */
     private void doUpdate(TableColumn.CellEditEvent<Patient, String> event) {
         try {
             this.dao.update(event.getRowValue());
@@ -291,10 +276,7 @@ public class AllPatientController {
         }
     }
 
-    /**
-     * Reloads all patients from the database and displays them in the table.
-     */
-    public void readAllAndShowInTableView() {
+    private void readAllAndShowInTableView() {
         this.patients.clear();
         this.dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
@@ -311,7 +293,8 @@ public class AllPatientController {
     @FXML
     public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null && selectedItem.getStatus() == RecordStatus.ACTIVE) {
+        if (selectedItem != null &&
+                (selectedItem.getStatus() == null || selectedItem.getStatus() == RecordStatus.ACTIVE)) {
             try {
                 // Check if this patient has active treatments
                 TreatmentDao treatmentDao = DaoFactory.getDaoFactory().createTreatmentDao();
@@ -320,7 +303,7 @@ public class AllPatientController {
                 // Filter to get only active treatments
                 List<Treatment> activeRecords = new ArrayList<>();
                 for (Treatment treatment : activeTreatments) {
-                    if (treatment.getStatus() == RecordStatus.ACTIVE) {
+                    if (treatment.getStatus() == null || treatment.getStatus() == RecordStatus.ACTIVE) {
                         activeRecords.add(treatment);
                     }
                 }
@@ -362,9 +345,7 @@ public class AllPatientController {
         }
     }
 
-    /**
-     * Handles the add button action. Creates a new patient from the input fields.
-     */
+
     @FXML
     public void handleAdd() {
         String surname = this.textFieldSurname.getText();
@@ -385,9 +366,6 @@ public class AllPatientController {
         }
     }
 
-    /**
-     * Clears all input fields.
-     */
     private void clearTextfields() {
         this.textFieldFirstName.clear();
         this.textFieldSurname.clear();

@@ -3,8 +3,7 @@ package de.hitec.nhplus.datastorage;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.utils.DateConverter;
-// ... andere Importe ...
-import java.sql.Statement; // Hinzufügen dieses Imports
+import java.sql.Statement;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -25,8 +24,6 @@ public class PatientDao extends DaoImp<Patient> {
     public PatientDao(Connection connection) {
         super(connection);
     }
-
-    // ... Konstruktor ...
 
     /**
      * Generates a <code>PreparedStatement</code> to persist the given object of <code>Patient</code>.
@@ -52,7 +49,6 @@ public class PatientDao extends DaoImp<Patient> {
             e.printStackTrace();
         }
         return preparedStatement;
-
     }
 
     /**
@@ -108,7 +104,6 @@ public class PatientDao extends DaoImp<Patient> {
                 statusChangeDate
         );
         return patient;
-
     }
 
     /**
@@ -167,7 +162,6 @@ public class PatientDao extends DaoImp<Patient> {
         return list;
     }
 
-
     /**
      * Generates a <code>PreparedStatement</code> to update the given patient, identified
      * by the id of the patient (pid).
@@ -224,6 +218,13 @@ public class PatientDao extends DaoImp<Patient> {
         return preparedStatement;
     }
 
+    /**
+     * Findet alle Patienten mit einem bestimmten Status
+     *
+     * @param status Status nach dem gesucht wird
+     * @return Liste der gefundenen Patienten
+     * @throws SQLException bei Datenbankproblemen
+     */
     public List<Patient> findByStatus(RecordStatus status) throws SQLException {
         List<Patient> result = new ArrayList<>();
         final String SQL = "SELECT * FROM patient WHERE status = ?";
@@ -241,7 +242,13 @@ public class PatientDao extends DaoImp<Patient> {
         return result;
     }
 
-
+    /**
+     * Findet alle Patienten, deren Status älter als das angegebene Datum ist
+     *
+     * @param date Das Vergleichsdatum
+     * @return Liste der gefundenen Patienten
+     * @throws SQLException bei Datenbankproblemen
+     */
     public List<Patient> findOlderThan(LocalDate date) throws SQLException {
         List<Patient> result = new ArrayList<>();
         final String SQL = "SELECT * FROM patient WHERE status_change_date < ?";
@@ -259,5 +266,83 @@ public class PatientDao extends DaoImp<Patient> {
         return result;
     }
 
+    /**
+     * Erstellt die Tabelle "patient" in der Datenbank, falls sie noch nicht existiert
+     */
+    public void createTable() {
+        try {
+            if (connection == null) {
+                System.err.println("FEHLER: Connection ist null in createTable");
+                connection = ConnectionBuilder.getConnection();
+                if (connection == null) {
+                    throw new SQLException("Konnte keine Datenbankverbindung herstellen");
+                }
+            }
 
+            Statement st = connection.createStatement();
+            System.out.println("Prüfe, ob Tabelle 'patient' existiert...");
+
+            ResultSet tables = connection.getMetaData().getTables(null, null, "patient", null);
+            boolean tableExists = tables.next();
+            tables.close();
+
+            if (!tableExists) {
+                System.out.println("Tabelle 'patient' existiert nicht. Erstelle neu...");
+                String createTableSQL = "CREATE TABLE IF NOT EXISTS patient (" +
+                        "pid INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "firstname TEXT NOT NULL, " +
+                        "surname TEXT NOT NULL, " +
+                        "dateOfBirth TEXT, " +
+                        "carelevel TEXT, " +
+                        "roomnumber TEXT, " +
+                        "status TEXT, " +
+                        "status_change_date TEXT)";
+
+                System.out.println("Führe SQL aus: " + createTableSQL);
+                st.executeUpdate(createTableSQL);
+                System.out.println("Tabelle 'patient' erfolgreich erstellt.");
+            } else {
+                System.out.println("Tabelle 'patient' existiert bereits.");
+
+                // Überprüfe und füge status und status_change_date Spalten hinzu, falls sie fehlen
+                try {
+                    ResultSet columns = connection.getMetaData().getColumns(null, null, "patient", "status");
+                    boolean statusExists = columns.next();
+                    columns.close();
+
+                    if (!statusExists) {
+                        System.out.println("Spalten 'status' und 'status_change_date' fehlen. Füge hinzu...");
+                        st.executeUpdate("ALTER TABLE patient ADD COLUMN status TEXT");
+                        st.executeUpdate("ALTER TABLE patient ADD COLUMN status_change_date TEXT");
+
+                        st.executeUpdate("UPDATE patient SET status = 'ACTIVE', status_change_date = date('now') WHERE status IS NULL");
+                        System.out.println("Statusspalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Fehler beim Prüfen der Statusspalten: " + e.getMessage());
+                    try {
+                        System.out.println("Versuche, Spalten 'status' und 'status_change_date' hinzuzufügen...");
+                        st.executeUpdate("ALTER TABLE patient ADD COLUMN status TEXT");
+                        st.executeUpdate("ALTER TABLE patient ADD COLUMN status_change_date TEXT");
+
+                        st.executeUpdate("UPDATE patient SET status = 'ACTIVE', status_change_date = date('now') WHERE status IS NULL");
+                        System.out.println("Statusspalten erfolgreich hinzugefügt und mit Standardwerten gefüllt.");
+                    } catch (SQLException ex) {
+                        System.err.println("Fehler beim Hinzufügen der Statusspalten: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+            st.close();
+            System.out.println("Tabelle 'patient' ist bereit.");
+
+        } catch (SQLException e) {
+            System.err.println("SQL-Fehler in createTable: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Unerwarteter Fehler in createTable: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
