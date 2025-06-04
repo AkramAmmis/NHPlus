@@ -17,6 +17,9 @@ public class Patient extends Person {
     private final SimpleStringProperty careLevel;
     private final SimpleStringProperty roomNumber;
     private final List<Treatment> allTreatments = new ArrayList<>();
+    private RecordStatus status;
+    private LocalDate statusChangeDate;
+
 
     /**
      * Constructor to initiate an object of class <code>Patient</code> with the given parameter. Use this constructor
@@ -33,6 +36,9 @@ public class Patient extends Person {
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
+        this.status = RecordStatus.ACTIVE;
+        this.statusChangeDate = LocalDate.now();
+
     }
 
     /**
@@ -52,7 +58,22 @@ public class Patient extends Person {
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
+        this.status = RecordStatus.ACTIVE;
+        this.statusChangeDate = LocalDate.now();
     }
+
+    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth,
+                   String careLevel, String roomNumber,
+                   RecordStatus status, LocalDate statusChangeDate) {
+        super(firstName, surname);
+        this.pid = new SimpleLongProperty(pid);
+        this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
+        this.careLevel = new SimpleStringProperty(careLevel);
+        this.roomNumber = new SimpleStringProperty(roomNumber);
+        this.status = status;
+        this.statusChangeDate = statusChangeDate;
+    }
+
 
     public long getPid() {
         return pid.get();
@@ -104,6 +125,19 @@ public class Patient extends Person {
         this.roomNumber.set(roomNumber);
     }
 
+    public RecordStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RecordStatus status) {
+        this.status = status;
+        this.statusChangeDate = LocalDate.now();
+    }
+
+    public LocalDate getStatusChangeDate() {
+        return statusChangeDate;
+    }
+
 
     /**
      * Adds a treatment to the list of treatments, if the list does not already contain the treatment.
@@ -119,13 +153,25 @@ public class Patient extends Person {
         return true;
     }
 
-    public String toString() {
-        return "Patient" + "\nMNID: " + this.pid +
-                "\nFirstname: " + this.getFirstName() +
-                "\nSurname: " + this.getSurname() +
-                "\nBirthday: " + this.dateOfBirth +
-                "\nCarelevel: " + this.careLevel +
-                "\nRoomnumber: " + this.roomNumber +
-                "\n";
+    /**
+     * @return The display name of the current status
+     */
+    public String getStatusDisplayName() {
+        return status.getDisplayName();
     }
+
+    @Override
+    public String toString() {
+        return "Patient{" +
+                "pid=" + pid +
+                ", firstName='" + getFirstName() + '\'' +
+                ", surname='" + getSurname() + '\'' +
+                ", dateOfBirth='" + dateOfBirth + '\'' +
+                ", careLevel='" + careLevel + '\'' +
+                ", roomNumber='" + roomNumber + '\'' +
+                ", status=" + status +
+                ", statusChangeDate=" + statusChangeDate +
+                '}';
+    }
+
 }
