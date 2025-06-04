@@ -4,34 +4,32 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!-- Hauptlayout der Anwendung als BorderPane -->
-<BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" 
-            prefHeight="688.0" prefWidth="926.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" 
-            fx:controller="de.hitec.nhplus.controller.MainWindowController">
-   
-   <!-- Linker Bereich des Fensters -->
+<BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="688.0" prefWidth="926.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.hitec.nhplus.controller.MainWindowController">
    <left>
-      <!-- VBox für vertikale Anordnung von Buttons -->
       <VBox id="vBox" alignment="CENTER" spacing="50.0" styleClass="vBox" stylesheets="@Application.css" BorderPane.alignment="CENTER">
          <children>
-            <!-- Button zum Anzeigen aller Patienten -->
-            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleShowAllPatient" 
-                    prefWidth="105.0" text="Patienten/innen">
+            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleShowAllPatient" prefWidth="105.0" text="Patienten/innen">
                <VBox.margin>
                   <Insets bottom="50.0" left="10.0" right="10.0" top="50.0" />
                </VBox.margin>
                <opaqueInsets>
                   <Insets />
-               </opaqueInsets>
-            </Button>
-            
-            <!-- Button zum Anzeigen aller Behandlungen -->
-            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleShowAllTreatments" 
-                    prefWidth="105.0" text="Behandlungen">
+               </opaqueInsets></Button>
+
+            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleShowAllCaregiver" prefWidth="105.0" text="Pfleger/innen">
                <VBox.margin>
                   <Insets bottom="50.0" left="10.0" right="10.0" top="50.0" />
                </VBox.margin>
-            </Button>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets></Button>
+
+            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleShowAllTreatments" prefWidth="105.0" text="Behandlungen">
+               <VBox.margin>
+                  <Insets bottom="50.0" left="10.0" right="10.0" top="50.0" />
+               </VBox.margin></Button>
+
+            <Button fx:id="logoutButton" text="Abmelden" onAction="#handleLogout" />
          </children>
       </VBox>
    </left>

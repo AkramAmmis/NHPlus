@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface Dao<T> {
-    void create(T t) throws SQLException;
+    long create(T t) throws SQLException;
 
     T read(long key) throws SQLException;
 

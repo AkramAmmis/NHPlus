@@ -16,8 +16,10 @@ public class Patient extends Person {
     private final SimpleStringProperty dateOfBirth;
     private final SimpleStringProperty careLevel;
     private final SimpleStringProperty roomNumber;
-    private final SimpleStringProperty assets;
     private final List<Treatment> allTreatments = new ArrayList<>();
+    private RecordStatus status;
+    private LocalDate statusChangeDate;
+
 
     /**
      * Constructor to initiate an object of class <code>Patient</code> with the given parameter. Use this constructor
@@ -28,14 +30,15 @@ public class Patient extends Person {
      * @param dateOfBirth Date of birth of the patient.
      * @param careLevel Care level of the patient.
      * @param roomNumber Room number of the patient.
-     * @param assets Assets of the patient.
      */
-    public Patient(String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String assets) {
+    public Patient(String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber) {
         super(firstName, surname);
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
-        this.assets = new SimpleStringProperty(assets);
+        this.status = RecordStatus.ACTIVE;
+        this.statusChangeDate = LocalDate.now();
+
     }
 
     /**
@@ -48,16 +51,29 @@ public class Patient extends Person {
      * @param dateOfBirth Date of birth of the patient.
      * @param careLevel Care level of the patient.
      * @param roomNumber Room number of the patient.
-     * @param assets Assets of the patient.
      */
-    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String assets) {
+    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber) {
         super(firstName, surname);
         this.pid = new SimpleLongProperty(pid);
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
-        this.assets = new SimpleStringProperty(assets);
+        this.status = RecordStatus.ACTIVE;
+        this.statusChangeDate = LocalDate.now();
     }
+
+    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth,
+                   String careLevel, String roomNumber,
+                   RecordStatus status, LocalDate statusChangeDate) {
+        super(firstName, surname);
+        this.pid = new SimpleLongProperty(pid);
+        this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
+        this.careLevel = new SimpleStringProperty(careLevel);
+        this.roomNumber = new SimpleStringProperty(roomNumber);
+        this.status = status;
+        this.statusChangeDate = statusChangeDate;
+    }
+
 
     public long getPid() {
         return pid.get();
@@ -109,17 +125,19 @@ public class Patient extends Person {
         this.roomNumber.set(roomNumber);
     }
 
-    public String getAssets() {
-        return assets.get();
+    public RecordStatus getStatus() {
+        return status;
     }
 
-    public SimpleStringProperty assetsProperty() {
-        return assets;
+    public void setStatus(RecordStatus status) {
+        this.status = status;
+        this.statusChangeDate = LocalDate.now();
     }
 
-    public void setAssets(String assets) {
-        this.assets.set(assets);
+    public LocalDate getStatusChangeDate() {
+        return statusChangeDate;
     }
+
 
     /**
      * Adds a treatment to the list of treatments, if the list does not already contain the treatment.
@@ -135,14 +153,25 @@ public class Patient extends Person {
         return true;
     }
 
-    public String toString() {
-        return "Patient" + "\nMNID: " + this.pid +
-                "\nFirstname: " + this.getFirstName() +
-                "\nSurname: " + this.getSurname() +
-                "\nBirthday: " + this.dateOfBirth +
-                "\nCarelevel: " + this.careLevel +
-                "\nRoomnumber: " + this.roomNumber +
-                "\nAssets: " + this.assets +
-                "\n";
+    /**
+     * @return The display name of the current status
+     */
+    public String getStatusDisplayName() {
+        return status.getDisplayName();
     }
+
+    @Override
+    public String toString() {
+        return "Patient{" +
+                "pid=" + pid +
+                ", firstName='" + getFirstName() + '\'' +
+                ", surname='" + getSurname() + '\'' +
+                ", dateOfBirth='" + dateOfBirth + '\'' +
+                ", careLevel='" + careLevel + '\'' +
+                ", roomNumber='" + roomNumber + '\'' +
+                ", status=" + status +
+                ", statusChangeDate=" + statusChangeDate +
+                '}';
+    }
+
 }

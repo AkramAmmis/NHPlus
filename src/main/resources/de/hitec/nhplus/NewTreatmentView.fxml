@@ -60,7 +60,13 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <TextField fx:id="textFieldBegin" promptText="hh:mm" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+             <Label text="Pfleger:"  GridPane.rowIndex="2">
+                 <font>
+                     <Font name="System Bold" size="13.0" />
+                 </font>
+             </Label>
+             <ComboBox fx:id="comboBoxCaregiverSelection" minWidth="192.0" onAction="#handleCaregiverComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+             <TextField fx:id="textFieldBegin" promptText="hh:mm" GridPane.columnIndex="3" GridPane.rowIndex="3" />
             <TextField fx:id="textFieldEnd" maxWidth="192.0" prefWidth="150.0" promptText="hh:mm" GridPane.columnIndex="1" GridPane.rowIndex="4" />
             <TextField fx:id="textFieldDescription" GridPane.columnIndex="3" GridPane.rowIndex="4" />
             <DatePicker fx:id="datePicker" prefWidth="192.0" promptText="yyyy-mm-dd" GridPane.columnIndex="1" GridPane.rowIndex="3" />

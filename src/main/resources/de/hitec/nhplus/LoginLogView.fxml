@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.hitec.nhplus.controller.LoginLogController">
+   <top>
+      <VBox spacing="10">
+         <padding>
+            <Insets bottom="10" left="10" right="10" top="10" />
+         </padding>
+         <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Login-Protokoll" />
+         <Button onAction="#refreshLogs" text="Aktualisieren" />
+      </VBox>
+   </top>
+   <center>
+      <TableView fx:id="logTable">
+         <columns>
+            <TableColumn fx:id="timestampColumn" prefWidth="150" text="Zeitstempel" />
+            <TableColumn fx:id="usernameColumn" prefWidth="120" text="Benutzername" />
+            <TableColumn fx:id="ipAddressColumn" prefWidth="120" text="IP-Adresse" />
+            <TableColumn fx:id="statusColumn" prefWidth="80" text="Status" />
+            <TableColumn fx:id="reasonColumn" prefWidth="200" text="Grund (bei Fehler)" />
+         </columns>
+      </TableView>
+   </center>
+</BorderPane>
