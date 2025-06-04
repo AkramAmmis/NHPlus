@@ -1,6 +1,7 @@
 package de.hitec.nhplus;
 
 import de.hitec.nhplus.controller.MainWindowController;
+import de.hitec.nhplus.controller.LoginViewController;
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.ConnectionBuilder;
 import de.hitec.nhplus.datastorage.DaoFactory;
@@ -12,6 +13,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -37,16 +39,16 @@ public class Main extends Application {
 
     public void showLoginView() {
         try {
-            FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/MainWindowView.fxml"));
-            BorderPane dummy = loader.load();
+            FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/fxml/LoginView.fxml"));
+            Parent root = loader.load();
 
-            MainWindowController mainController = loader.getController();
-            mainController.setMain(this);
-            mainController.setPrimaryStage(primaryStage);
+            LoginViewController controller = loader.getController();
+            controller.setMainWindowController(new MainWindowController());
 
-           
-            Stage loginStage = new Stage();
-            new LoginView(loginStage, mainController);
+            Scene scene = new Scene(root);
+            primaryStage.setScene(scene);
+            primaryStage.setTitle("Login");
+            primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }

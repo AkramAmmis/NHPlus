@@ -128,26 +128,17 @@ public class MainWindowController {
     }
     @FXML
     private void handleLogout(ActionEvent event) {
+        // Perform logout
         AuthorizationManager.getInstance().logout();
-        try {
-            if (main != null) {
-                main.showLoginView();
-                return;
-            }
-            javafx.scene.Node source = (javafx.scene.Node) event.getSource();
-            javafx.stage.Stage currentStage = (javafx.stage.Stage) source.getScene().getWindow();
-            new de.hitec.nhplus.gui.LoginView(currentStage, this);
-        } catch (Exception e) {
-            System.err.println("Fehler beim Anzeigen des Login-Fensters: " + e.getMessage());
-            e.printStackTrace();
-            try {
-                javafx.scene.Node source = (javafx.scene.Node) event.getSource();
-                javafx.stage.Stage stage = (javafx.stage.Stage) source.getScene().getWindow();
-                stage.close();
-            } catch (Exception ex) {
-                System.err.println("Fehler beim Schließen des Fensters: " + ex.getMessage());
-                ex.printStackTrace();
-            }
+
+        // Close the current stage
+        Stage stage = (Stage) mainBorderPane.getScene().getWindow();
+        stage.close();
+
+        // Open the login view
+        Main mainApp = getMain();
+        if (mainApp != null) {
+            mainApp.showLoginView();
         }
     }
     public Main getMain() {
