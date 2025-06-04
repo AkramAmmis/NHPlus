@@ -9,6 +9,7 @@ import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.model.Treatment;
+import de.hitec.nhplus.utils.AuthorizationManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -66,8 +67,6 @@ public class AllTreatmentController {
     @FXML
     private Button buttonLock;
 
-    @FXML
-    private Button buttonDelete;
 
     private ArchivingService<Treatment> archivingService;
     private final ObservableList<Treatment> treatments = FXCollections.observableArrayList();
@@ -101,13 +100,13 @@ public class AllTreatmentController {
         // Set row factory to apply styling for locked records
         this.tableView.setRowFactory(getRowFactory());
 
-        // Configure buttons
+        boolean isAdmin = AuthorizationManager.getInstance().isAdmin();
+
         if (this.buttonLock != null) {
             this.buttonLock.setDisable(true);
+            this.buttonLock.setVisible(isAdmin);
         }
-        if (this.buttonDelete != null) {
-            this.buttonDelete.setDisable(true);
-        }
+
 
         this.tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTreatment, newTreatment) -> {
@@ -122,9 +121,7 @@ public class AllTreatmentController {
                     }
 
                     // Delete button is enabled whenever a record is selected
-                    if (this.buttonDelete != null) {
-                        this.buttonDelete.setDisable(noSelection);
-                    }
+
                 });
 
         // Create patient combo box data
@@ -302,7 +299,7 @@ public class AllTreatmentController {
             }
         }
     }
-    
+
 
     /**
      * Handles the new treatment button action. Opens a window to create a new treatment.

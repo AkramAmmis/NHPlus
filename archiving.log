@@ -1,0 +1,4 @@
+2025-06-04 19:01:08 | Patient | ID: 5 | Status: ACTIVE -> LOCKED | User: System
+2025-06-04 19:28:40 | Caregiver | ID: 4 | Status: ACTIVE -> LOCKED | User: System
+2025-06-04 21:30:12 | Caregiver | ID: 4 | Status: ACTIVE -> LOCKED | User: System
+2025-06-04 21:31:06 | Patient | ID: 5 | Status: ACTIVE -> LOCKED | User: System

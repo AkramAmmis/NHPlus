@@ -1,9 +1,7 @@
 package de.hitec.nhplus.utils;
 
 import de.hitec.nhplus.datastorage.*;
-import de.hitec.nhplus.model.Caregiver;
-import de.hitec.nhplus.model.Patient;
-import de.hitec.nhplus.model.Treatment;
+import de.hitec.nhplus.model.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -115,12 +113,15 @@ public class SetUpDB {
     private static void setUpCaregivers() {
         try {
             CaregiverDao dao = DaoFactory.getDaoFactory().createCaregiverDAO();
+            UserDao userDao = DaoFactory.getDaoFactory().createUserDAO();
 
-
-            // Neue Caregiver-Instanzen mit Username und Passwort erstellen
             dao.create(new Caregiver(0, "hneumann", "password123", "Hans", "Neumann", "0123456789"));
             dao.create(new Caregiver(0, "lneubauer", "password123", "Luise", "Neubauer", "02314457893"));
             dao.create(new Caregiver(0, "jmeyer", "password123", "Jonas", "Meyer", "0173228845"));
+
+            userDao.createUser(new User("hneumann", "password123", "Hans", "Neumann", "", "0123456789", UserRole.CAREGIVER));
+            userDao.createUser(new User("lneubauer", "password123", "Luise", "Neubauer", "", "02314457893", UserRole.CAREGIVER));
+            userDao.createUser(new User("jmeyer", "password123", "Jonas", "Meyer", "", "0173228845", UserRole.CAREGIVER));
 
         } catch (SQLException exception) {
             exception.printStackTrace();

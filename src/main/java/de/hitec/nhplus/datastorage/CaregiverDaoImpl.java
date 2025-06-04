@@ -32,6 +32,8 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                 caregiver.setUsername(username);
             }
 
+            System.out.println("Erstelle Caregiver mit Username: " + username);
+
             UserDao userDao = DaoFactory.getDaoFactory().createUserDAO();
             userDao.createTable();
 
@@ -57,6 +59,17 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
                 System.out.println("Tabelle 'caregiver' existiert nicht. Erstelle neu...");
                 createTable();
             }
+
+            PreparedStatement checkStatement = this.connection.prepareStatement(
+                    "SELECT COUNT(*) FROM caregiver WHERE username = ?");
+            checkStatement.setString(1, username);
+            ResultSet checkResult = checkStatement.executeQuery();
+            if (checkResult.next() && checkResult.getInt(1) > 0) {
+                System.out.println("WARNUNG: Ein Benutzer mit dem Benutzernamen '" + username + "' existiert bereits!");
+            }
+            checkResult.close();
+            checkStatement.close();
+
 
             final String SQL = "INSERT INTO caregiver (firstname, surname, telephone, username, password, status, status_change_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
             preparedStatement = this.connection.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
@@ -90,8 +103,12 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
             return "";
         }
 
-        return de.hitec.nhplus.utils.PasswordUtils.hashPassword(password);
+        // Debug-Ausgabe
+        String hashedPassword = de.hitec.nhplus.utils.PasswordUtils.hashPassword(password);
+        System.out.println("Passwort verschlüsselt: " + password + " -> " + hashedPassword);
+        return hashedPassword;
     }
+
 
     @Override
     protected PreparedStatement getReadByIDStatement(long key) {
@@ -473,31 +490,56 @@ public class CaregiverDaoImpl extends DaoImp<Caregiver> implements CaregiverDao 
     @Override
     public Caregiver authenticate(String username, String password) {
         try {
+            // Debug-Ausgaben hinzufügen
+            System.out.println("Versuche Authentifizierung für Benutzer: " + username);
+
             PreparedStatement st = connection.prepareStatement(
                     "SELECT * FROM caregiver WHERE username = ?"
             );
             st.setString(1, username);
 
             ResultSet rs = st.executeQuery();
-            Caregiver caregiver = null;
 
-            if (rs.next()) {
-                caregiver = getInstanceFromResultSet(rs);
+            // Prüfen, ob Ergebnisse zurückgegeben wurden
+            if (!rs.next()) {
+                System.out.println("Kein Benutzer mit Benutzernamen '" + username + "' gefunden.");
+                rs.close();
+                st.close();
+                return null;
+            }
 
-                String encryptedPassword = encryptPassword(password);
-                if (!encryptedPassword.equals(caregiver.getPassword())) {
-                    caregiver = null;
-                }
+            // Caregiver aus ResultSet erstellen
+            Caregiver caregiver = getInstanceFromResultSet(rs);
+            System.out.println("Benutzer gefunden: " + caregiver.getFullName() + ", Username: " + caregiver.getUsername());
+
+            // Passwort überprüfen
+            String storedPassword = caregiver.getPassword();
+            String encryptedInputPassword = encryptPassword(password);
+
+            System.out.println("Gespeichertes Passwort (Hash): " + storedPassword);
+            System.out.println("Eingegebenes Passwort (Hash): " + encryptedInputPassword);
+
+            if (storedPassword == null || !storedPassword.equals(encryptedInputPassword)) {
+                System.out.println("Passwörter stimmen nicht überein für Benutzer '" + username + "'");
+                caregiver = null;
+            } else {
+                System.out.println("Authentifizierung erfolgreich für " + username);
             }
 
             rs.close();
             st.close();
             return caregiver;
         } catch (SQLException e) {
+            System.err.println("SQL-Fehler bei der Authentifizierung: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            System.err.println("Unerwarteter Fehler bei der Authentifizierung: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
+
 
     @Override
     public Caregiver readCaregiver(long cid) {

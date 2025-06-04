@@ -31,16 +31,6 @@ public class Caregiver {
         this.statusChangeDate = LocalDate.now();
     }
 
-    public Caregiver(long cid, String username, String password, String firstName, String surname, String telephone) {
-        this.cid = cid;
-        this.username = username;
-        this.password = password;
-        this.firstName = firstName;
-        this.surname = surname;
-        this.telephone = telephone;
-        this.status = RecordStatus.ACTIVE;
-        this.statusChangeDate = LocalDate.now();
-    }
 
     /**
      * Constructor for creating a caregiver with an ID, username and password (e.g., when retrieving from the database).
@@ -181,25 +171,8 @@ public class Caregiver {
         return firstName + " " + surname;
     }
 
-    public String getUsername() {
-        return username;
-    }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFullName() {
-        return firstName + " " + surname;
-    }
 
 
     @Override

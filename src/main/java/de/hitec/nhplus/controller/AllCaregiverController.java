@@ -6,6 +6,7 @@ import de.hitec.nhplus.archiving.CaregiverArchivingService;
 import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.datastorage.UserDao;
 import de.hitec.nhplus.model.Caregiver;
 import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.model.Treatment;
@@ -61,9 +62,6 @@ public class AllCaregiverController {
     private Button buttonLock;
 
     @FXML
-    private Button buttonDelete;
-
-    @FXML
     private Button buttonAdd;
 
     @FXML
@@ -117,7 +115,7 @@ public class AllCaregiverController {
 
         // Configure buttons
         this.buttonLock.setDisable(true);
-        this.buttonDelete.setDisable(true);
+        this.buttonLock.setVisible(isAdmin);
         this.buttonChangePassword.setDisable(true);
         this.buttonChangePassword.setVisible(isAdmin);
 
@@ -125,7 +123,6 @@ public class AllCaregiverController {
             boolean isDisabled = newCaregiver == null;
             AllCaregiverController.this.buttonLock.setDisable(isDisabled ||
                     (newCaregiver.getStatus() != null && newCaregiver.getStatus() != RecordStatus.ACTIVE));
-            AllCaregiverController.this.buttonDelete.setDisable(newCaregiver == null || !isAdmin);
             AllCaregiverController.this.buttonChangePassword.setDisable(newCaregiver == null || !isAdmin);
         });
 
@@ -457,7 +454,23 @@ public class AllCaregiverController {
                     // Erstelle einen Pfleger mit den neuen Feldern
                     Caregiver caregiver = new Caregiver(0, username, password, firstname, surname, telephone);
 
-                    this.dao.create(caregiver);
+                    long caregiverId = this.dao.create(caregiver);
+                    caregiver.setCid(caregiverId);
+
+                    // Hier den entsprechenden User anlegen
+                    UserDao userDao = DaoFactory.getDaoFactory().createUserDAO();
+                    User user = new User(
+                            username,
+                            password,
+                            firstname,
+                            surname,
+                            "", // Email-Feld leer
+                            telephone,
+                            UserRole.CAREGIVER
+                    );
+                    user.setCaregiverId(caregiverId); // Verknüpfung mit Caregiver-ID
+                    userDao.createUser(user);
+
                     this.readAllAndShowInTableView();
                     clearTextfields();
 
@@ -472,6 +485,7 @@ public class AllCaregiverController {
                     e.printStackTrace();
                     showErrorMessage("Fehler beim Hinzufügen", "Der Pfleger konnte nicht hinzugefügt werden: " + e.getMessage());
                 }
+
             });
         }
     }

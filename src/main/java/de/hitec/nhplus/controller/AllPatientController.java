@@ -8,6 +8,7 @@ import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.RecordStatus;
 import de.hitec.nhplus.model.Treatment;
+import de.hitec.nhplus.utils.AuthorizationManager;
 import de.hitec.nhplus.utils.DateConverter;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -48,8 +49,6 @@ public class AllPatientController {
     private TableColumn<Patient, String> columnStatus;
     @FXML
     private Button buttonLock;
-    @FXML
-    private Button buttonDelete;
     @FXML
     private Button buttonAdd;
     @FXML
@@ -101,9 +100,11 @@ public class AllPatientController {
         // Set row factory to apply styling for locked records
         this.tableView.setRowFactory(getRowFactory());
 
+        boolean isAdmin = AuthorizationManager.getInstance().isAdmin();
+
         // Configure buttons
         this.buttonLock.setDisable(true);
-        this.buttonDelete.setDisable(true);
+        this.buttonLock.setVisible(isAdmin);
 
         // Add listeners for button activation/deactivation
         this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldPatient, newPatient) -> {
@@ -112,10 +113,6 @@ public class AllPatientController {
             if (buttonLock != null) {
                 AllPatientController.this.buttonLock.setDisable(isDisabled ||
                         (newPatient != null && newPatient.getStatus() != RecordStatus.ACTIVE));
-            }
-            // Delete button is enabled if a record is selected
-            if (buttonDelete != null) {
-                AllPatientController.this.buttonDelete.setDisable(isDisabled);
             }
         });
 
