@@ -12,18 +12,8 @@ import java.sql.Statement;
 import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalDate;
 import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalTime;
 
-/**
- * Call static class provides to static methods to set up and wipe the database. It uses the class ConnectionBuilder
- * and its path to build up the connection to the database. The class is executable. Executing the class will build
- * up a connection to the database and calls setUpDb() to wipe the database, build up a clean database and fill the
- * database with some test data.
- */
 public class SetUpDB {
 
-    /**
-     * This method wipes the database by dropping the tables. Then the method calls DDL statements to build it up from
-     * scratch and DML statements to fill the database with hard coded test data.
-     */
     public static void setUpDb() {
         Connection connection = ConnectionBuilder.getConnection();
         SetUpDB.wipeDb(connection);
@@ -35,14 +25,11 @@ public class SetUpDB {
         SetUpDB.setUpTreatments();
     }
 
-    /**
-     * This method wipes the database by dropping the tables.
-     */
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("DROP TABLE treatment");
-            statement.execute("DROP TABLE patient");
-            statement.execute("DROP TABLE caregiver");
+            statement.execute("DROP TABLE IF EXISTS treatment");
+            statement.execute("DROP TABLE IF EXISTS patient");
+            statement.execute("DROP TABLE IF EXISTS caregiver");
         } catch (SQLException exception) {
             System.out.println(exception.getMessage());
         }
@@ -67,14 +54,25 @@ public class SetUpDB {
         }
 
     }
+
     private static void setUpTableCaregiver(Connection connection) {
         final String SQL = "CREATE TABLE IF NOT EXISTS caregiver (" +
                 "   cid INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "   firstname TEXT NOT NULL, " +
                 "   surname TEXT NOT NULL, " +
+<<<<<< Datenarchivierungssystem
                 "   telephone TEXT NOT NULL, " +
                 "   status TEXT DEFAULT 'ACTIVE', " +
                 "   status_change_date TEXT " +
+======
+                "   username TEXT UNIQUE NOT NULL, " +
+                "   password TEXT NOT NULL, " +
+                "   role TEXT NOT NULL DEFAULT 'USER', " +
+                "   locked BOOLEAN DEFAULT 0, " +
+                "   failed_attempts INTEGER DEFAULT 0, " +
+                "   last_failed_attempt DATETIME, " +
+                "   telephone TEXT NOT NULL " +
+>>>>>> FixMerge
                 ");";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
@@ -124,9 +122,11 @@ public class SetUpDB {
     private static void setUpCaregivers() {
         try {
             CaregiverDao dao = DaoFactory.getDaoFactory().createCaregiverDAO();
-            dao.create(new Caregiver("Hans", "Neumann", "0123456789"));
-            dao.create(new Caregiver("Luise", "Neubauer", "02314457893"));
-            dao.create(new Caregiver("Jonas", "Meyer", "0173228845"));
+
+            // Neue Caregiver-Instanzen mit Username und Passwort erstellen
+            dao.create(new Caregiver(0, "hneumann", "password123", "Hans", "Neumann", "0123456789"));
+            dao.create(new Caregiver(0, "lneubauer", "password123", "Luise", "Neubauer", "02314457893"));
+            dao.create(new Caregiver(0, "jmeyer", "password123", "Jonas", "Meyer", "0173228845"));
 
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -187,4 +187,5 @@ public class SetUpDB {
     public static void main(String[] args) {
         SetUpDB.setUpDb();
     }
+
 }

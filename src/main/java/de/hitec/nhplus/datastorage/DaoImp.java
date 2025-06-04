@@ -18,15 +18,33 @@ public abstract class DaoImp<T> implements Dao<T> {
     @Override
     public long create(T t) throws SQLException {
         PreparedStatement preparedStatement = getCreateStatement(t);
-        preparedStatement.executeUpdate();
-        
-        // SQLite-spezifische Methode zum Abrufen der letzten ID
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-            if (rs.next()) {
-                return rs.getLong(1);
-            } else {
-                throw new SQLException("Creating " + t.getClass().getSimpleName() + " failed, no ID obtained.");
+
+
+        try {
+            preparedStatement.executeUpdate();
+
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                } else {
+                    throw new SQLException("Creating " + t.getClass().getSimpleName() + " failed, no ID obtained.");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL-Fehler beim Ausführen des PreparedStatements: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Unerwarteter Fehler beim Erstellen des Objekts: " + e.getMessage());
+            throw new SQLException("Fehler beim Erstellen: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Fehler beim Schließen des PreparedStatements: " + e.getMessage());
             }
         }
     }
@@ -48,7 +66,29 @@ public abstract class DaoImp<T> implements Dao<T> {
 
     @Override
     public void update(T t) throws SQLException {
-        getUpdateStatement(t).executeUpdate();
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = getUpdateStatement(t);
+            if (preparedStatement == null) {
+                throw new SQLException("Fehler beim Aktualisieren des Objekts " + t.getClass().getSimpleName() + ": PreparedStatement ist null.");
+            }
+            int rowsAffected = preparedStatement.executeUpdate();
+            System.out.println("Update durchgeführt. Betroffene Zeilen: " + rowsAffected);
+        } catch (SQLException e) {
+            System.err.println("SQL-Fehler beim Ausführen des Update-PreparedStatements: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Unerwarteter Fehler beim Aktualisieren des Objekts: " + e.getMessage());
+            throw new SQLException("Fehler beim Aktualisieren: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Fehler beim Schließen des PreparedStatements: " + e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -60,12 +100,7 @@ public abstract class DaoImp<T> implements Dao<T> {
 
     protected abstract ArrayList<T> getListFromResultSet(ResultSet set) throws SQLException;
 
-    /**
-     * Erstellt ein PreparedStatement für die Einfügeoperation.
-     * Anmerkung: Bei SQLite ist es nicht notwendig, Statement.RETURN_GENERATED_KEYS zu verwenden.
-     * @param t das zu erstellende Objekt
-     * @return PreparedStatement für die Einfügeoperation
-     */
+
     protected abstract PreparedStatement getCreateStatement(T t);
 
     protected abstract PreparedStatement getReadByIDStatement(long key);

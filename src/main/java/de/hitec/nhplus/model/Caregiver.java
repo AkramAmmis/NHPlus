@@ -1,18 +1,23 @@
 package de.hitec.nhplus.model;
-
 import java.time.LocalDate;
 
 /**
  * Represents a caregiver.
  */
+
 public class Caregiver {
     private long cid;
     private String firstName;
     private String surname;
     private String telephone;
+<<<<<< Datenarchivierungssystem
     private RecordStatus status;
     private LocalDate statusChangeDate;
 
+======
+    private String username;
+    private String password;
+>>>>>> FixMerge
 
     /**
      * Constructor for creating a new caregiver without an ID (e.g., before saving to the database).
@@ -20,6 +25,7 @@ public class Caregiver {
      * @param surname Surname of the caregiver.
      * @param telephone Telephone number of the caregiver.
      */
+
     public Caregiver(String firstName, String surname, String telephone) {
         this.firstName = firstName;
         this.surname = surname;
@@ -29,6 +35,7 @@ public class Caregiver {
 
     }
 
+<<<<<< Datenarchivierungssystem
     /**
      * Constructor for creating a caregiver with an ID (e.g., when retrieving from the database).
      * @param cid ID of the caregiver.
@@ -37,7 +44,12 @@ public class Caregiver {
      * @param telephone Telephone number of the caregiver
      */
     public Caregiver(long cid, String firstName, String surname, String telephone) {
+======
+    public Caregiver(long cid, String username, String password, String firstName, String surname, String telephone) {
+>>>>>> FixMerge
         this.cid = cid;
+        this.username = username;
+        this.password = password;
         this.firstName = firstName;
         this.surname = surname;
         this.telephone = telephone;
@@ -67,6 +79,10 @@ public class Caregiver {
 
     public long getCid() {
         return cid;
+    }
+
+    public void setCid(long cid) {
+        this.cid = cid;
     }
 
     public String getFirstName() {
@@ -119,6 +135,27 @@ public class Caregiver {
     }
 
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getFullName() {
+        return firstName + " " + surname;
+    }
+
+
     @Override
     public String toString() {
         return "Caregiver{" +
@@ -126,8 +163,12 @@ public class Caregiver {
                 ", firstName='" + firstName + '\'' +
                 ", surname='" + surname + '\'' +
                 ", telephone='" + telephone + '\'' +
+<<<<<< Datenarchivierungssystem
                 ", status=" + status +
                 ", statusChangeDate=" + statusChangeDate +
+======
+                ", username='" + username + '\'' +
+>>>>>> FixMerge
                 '}';
     }
 }

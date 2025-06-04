@@ -10,27 +10,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implements the Interface <code>DaoImp</code>. Overrides methods to generate specific <code>PreparedStatements</code>,
- * to execute the specific SQL Statements.
- */
 public class TreatmentDao extends DaoImp<Treatment> {
 
-    /**
-     * The constructor initiates an object of <code>TreatmentDao</code> and passes the connection to its super class.
-     *
-     * @param connection Object of <code>Connection</code> to execute the SQL-statements.
-     */
     public TreatmentDao(Connection connection) {
         super(connection);
     }
 
-    /**
-     * Generates a <code>PreparedStatement</code> to persist the given object of <code>Treatment</code>.
-     *
-     * @param treatment Object of <code>Treatment</code> to persist.
-     * @return <code>PreparedStatement</code> to insert the given patient.
-     */
     @Override
     protected PreparedStatement getCreateStatement(Treatment treatment) {
         PreparedStatement statement = null;
@@ -54,12 +39,14 @@ public class TreatmentDao extends DaoImp<Treatment> {
     }
 
 
+
     /**
      * Generates a <code>PreparedStatement</code> to query a treatment by a given treatment id (tid).
      *
      * @param tid Treatment id to query.
      * @return <code>PreparedStatement</code> to query the treatment.
      */
+
     @Override
     protected PreparedStatement getReadByIDStatement(long tid) {
         PreparedStatement preparedStatement = null;
@@ -73,12 +60,6 @@ public class TreatmentDao extends DaoImp<Treatment> {
         return preparedStatement;
     }
 
-    /**
-     * Maps a <code>ResultSet</code> of one treatment to an object of <code>Treatment</code>.
-     *
-     * @param result ResultSet with a single row. Columns will be mapped to an object of class <code>Treatment</code>.
-     * @return Object of class <code>Treatment</code> with the data from the resultSet.
-     */
     @Override
     protected Treatment getInstanceFromResultSet(ResultSet result) throws SQLException {
         LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
@@ -109,11 +90,6 @@ public class TreatmentDao extends DaoImp<Treatment> {
         );
     }
 
-    /**
-     * Generates a <code>PreparedStatement</code> to query all treatments.
-     *
-     * @return <code>PreparedStatement</code> to query all treatments.
-     */
     @Override
     protected PreparedStatement getReadAllStatement() {
         PreparedStatement statement = null;
@@ -126,14 +102,6 @@ public class TreatmentDao extends DaoImp<Treatment> {
         return statement;
     }
 
-    /**
-     * Maps a <code>ResultSet</code> of all treatments to an <code>ArrayList</code> with objects of class
-     * <code>Treatment</code>.
-     *
-     * @param result ResultSet with all rows. The columns will be mapped to objects of class <code>Treatment</code>.
-     * @return <code>ArrayList</code> with objects of class <code>Treatment</code> of all rows in the
-     * <code>ResultSet</code>.
-     */
     @Override
     protected ArrayList<Treatment> getListFromResultSet(ResultSet result) throws SQLException {
         ArrayList<Treatment> list = new ArrayList<Treatment>();
@@ -169,12 +137,6 @@ public class TreatmentDao extends DaoImp<Treatment> {
         return list;
     }
 
-    /**
-     * Generates a <code>PreparedStatement</code> to query all treatments of a patient with a given patient id (pid).
-     *
-     * @param pid Patient id to query all treatments referencing this id.
-     * @return <code>PreparedStatement</code> to query all treatments of the given patient id (pid).
-     */
     private PreparedStatement getReadAllTreatmentsOfOnePatientByPid(long pid) {
         PreparedStatement preparedStatement = null;
         try {
@@ -187,18 +149,11 @@ public class TreatmentDao extends DaoImp<Treatment> {
         return preparedStatement;
     }
 
-    /**
-     * Queries all treatments of a given patient id (pid) and maps the results to an <code>ArrayList</code> with
-     * objects of class <code>Treatment</code>.
-     *
-     * @param pid Patient id to query all treatments referencing this id.
-     * @return <code>ArrayList</code> with objects of class <code>Treatment</code> of all rows in the
-     * <code>ResultSet</code>.
-     */
     public List<Treatment> readTreatmentsByPid(long pid) throws SQLException {
         ResultSet result = getReadAllTreatmentsOfOnePatientByPid(pid).executeQuery();
         return getListFromResultSet(result);
     }
+
 
 
     /**
@@ -239,6 +194,7 @@ public class TreatmentDao extends DaoImp<Treatment> {
      * @param treatment Treatment object to update.
      * @return <code>PreparedStatement</code> to update the given treatment.
      */
+
     @Override
     protected PreparedStatement getUpdateStatement(Treatment treatment) {
         PreparedStatement statement = null;
@@ -269,6 +225,7 @@ public class TreatmentDao extends DaoImp<Treatment> {
      * @param tid Id of the Treatment to delete.
      * @return <code>PreparedStatement</code> to delete treatment with the given id.
      */
+
     @Override
     protected PreparedStatement getDeleteStatement(long tid) {
         PreparedStatement preparedStatement = null;

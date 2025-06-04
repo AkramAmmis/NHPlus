@@ -96,11 +96,15 @@ public class AllTreatmentController {
         // Display data
         this.tableView.setItems(this.treatments);
 
+<<<<<< Datenarchivierungssystem
         // Set row factory to apply styling for locked records
         this.tableView.setRowFactory(getRowFactory());
 
         // Configure buttons
         this.buttonLock.setDisable(true);
+======
+        this.buttonDelete.setDisable(true);
+>>>>>> FixMerge
         this.tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTreatment, newTreatment) -> {
                     boolean disableLock = newTreatment == null ||
@@ -324,7 +328,9 @@ public class AllTreatmentController {
             AnchorPane pane = loader.load();
             Scene scene = new Scene(pane);
 
+
             // The primary stage should stay in the background
+
             Stage stage = new Stage();
 
             NewTreatmentController controller = loader.getController();
@@ -351,6 +357,7 @@ public class AllTreatmentController {
             Scene scene = new Scene(pane);
 
             // The primary stage should stay in the background
+
             Stage stage = new Stage();
             TreatmentController controller = loader.getController();
             controller.initializeController(this, stage, treatment);

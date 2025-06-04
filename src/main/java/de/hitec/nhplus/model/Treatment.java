@@ -20,19 +20,19 @@ public class Treatment {
     private RecordStatus status;           // New field for status
     private LocalDate statusChangeDate;    // Date of last status change
 
+
     /**
      * Constructor for new treatments that are not yet persisted.
      *
-     * @param pid         ID of the treated patient
-     * @param cid         ID of the caregiver
-     * @param date        Date of the treatment
-     * @param begin       Start time of the treatment
-     * @param end         End time of the treatment
-     * @param description Description of the treatment
-     * @param remarks     Additional remarks about the treatment
+     * @param pid         Id of the treated patient.
+     * @param cid         Id of the caregiver.
+     * @param date        Date of the Treatment.
+     * @param begin       Time of the start of the treatment in format "hh:MM"
+     * @param end         Time of the end of the treatment in format "hh:MM".
+     * @param description Description of the treatment.
+     * @param remarks     Remarks to the treatment.
      */
-    public Treatment(long pid, long cid, LocalDate date, LocalTime begin,
-                     LocalTime end, String description, String remarks) {
+    public Treatment(long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
         this.pid = pid;
         this.cid = cid;
         this.date = date;
@@ -44,9 +44,11 @@ public class Treatment {
         this.statusChangeDate = LocalDate.now();
     }
 
+
     /**
      * Constructor for already persisted treatments.
      *
+<<<<<< Datenarchivierungssystem
      * @param tid              ID of the treatment
      * @param pid              ID of the treated patient
      * @param cid              ID of the caregiver
@@ -61,6 +63,18 @@ public class Treatment {
     public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin,
                      LocalTime end, String description, String remarks,
                      RecordStatus status, LocalDate statusChangeDate) {
+======
+     * @param tid         Id of the treatment.
+     * @param pid         Id of the treated patient.
+     * @param cid         Id of the caregiver.
+     * @param date        Date of the Treatment.
+     * @param begin       Time of the start of the treatment in format "hh:MM"
+     * @param end         Time of the end of the treatment in format "hh:MM".
+     * @param description Description of the treatment.
+     * @param remarks     Remarks to the treatment.
+     */
+    public Treatment(long tid, long pid, long cid, LocalDate date, LocalTime begin, LocalTime end, String description, String remarks) {
+>>>>>> FixMerge
         this.tid = tid;
         this.pid = pid;
         this.cid = cid;

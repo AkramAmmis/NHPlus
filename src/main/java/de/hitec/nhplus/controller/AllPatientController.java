@@ -20,6 +20,7 @@ import javafx.util.Callback;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+<<<<<< Datenarchivierungssystem
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,28 +29,25 @@ import java.util.Optional;
  * The AllPatientController contains the entire logic of the patient view.
  * It determines which data is displayed and how to react to events.
  */
-public class AllPatientController {
+=======
 
+>>>>>> FixMerge
+public class AllPatientController {
     @FXML
     private TableView<Patient> tableView;
-
     @FXML
     private TableColumn<Patient, Integer> columnId;
-
     @FXML
     private TableColumn<Patient, String> columnFirstName;
-
     @FXML
     private TableColumn<Patient, String> columnSurname;
-
     @FXML
     private TableColumn<Patient, String> columnDateOfBirth;
-
     @FXML
     private TableColumn<Patient, String> columnCareLevel;
-
     @FXML
     private TableColumn<Patient, String> columnRoomNumber;
+<<<<<< Datenarchivierungssystem
 
     @FXML
     private TableColumn<Patient, String> columnStatus;
@@ -57,28 +55,31 @@ public class AllPatientController {
     @FXML
     private Button buttonLock;
 
+======
+    @FXML
+    private Button buttonDelete;
+>>>>>> FixMerge
     @FXML
     private Button buttonAdd;
-
     @FXML
     private TextField textFieldSurname;
-
     @FXML
     private TextField textFieldFirstName;
-
     @FXML
     private TextField textFieldDateOfBirth;
-
     @FXML
     private TextField textFieldCareLevel;
-
     @FXML
     private TextField textFieldRoomNumber;
+<<<<<< Datenarchivierungssystem
 
+======
+>>>>>> FixMerge
     private final ObservableList<Patient> patients = FXCollections.observableArrayList();
     private PatientDao dao;
     private ArchivingService<Patient> archivingService;
 
+<<<<<< Datenarchivierungssystem
     /**
      * Initializes the controller. This method is called after all FXML fields are initialized.
      * Sets up table columns, loads data, and configures event listeners.
@@ -88,6 +89,11 @@ public class AllPatientController {
         this.archivingService = new PatientArchivingService();
 
         // Configure table columns
+======
+
+    public void initialize() {
+        this.readAllAndShowInTableView();
+>>>>>> FixMerge
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("pid"));
         this.columnFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         this.columnFirstName.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -99,6 +105,7 @@ public class AllPatientController {
         this.columnCareLevel.setCellFactory(TextFieldTableCell.forTableColumn());
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
+<<<<<< Datenarchivierungssystem
         this.columnStatus.setCellValueFactory(new PropertyValueFactory<>("statusDisplayName"));
 
         // Display data
@@ -115,6 +122,16 @@ public class AllPatientController {
         });
 
         // Configure validation for new patient input
+======
+        this.tableView.setItems(this.patients);
+        this.buttonDelete.setDisable(true);
+        this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
+            @Override
+            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {;
+                AllPatientController.this.buttonDelete.setDisable(newPatient == null);
+            }
+        });
+>>>>>> FixMerge
         this.buttonAdd.setDisable(true);
         ChangeListener<String> inputValidationListener = (observableValue, oldText, newText) ->
                 AllPatientController.this.buttonAdd.setDisable(!AllPatientController.this.areInputDataValid());
@@ -214,6 +231,7 @@ public class AllPatientController {
      *
      * @param event The cell edit event
      */
+
     @FXML
     public void handleOnEditSurname(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
@@ -226,11 +244,13 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
+
     /**
      * Handles editing of the date of birth column.
      *
      * @param event The cell edit event
      */
+
     @FXML
     public void handleOnEditDateOfBirth(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
@@ -248,6 +268,7 @@ public class AllPatientController {
      *
      * @param event The cell edit event
      */
+
     @FXML
     public void handleOnEditCareLevel(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
@@ -265,6 +286,7 @@ public class AllPatientController {
      *
      * @param event The cell edit event
      */
+
     @FXML
     public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event) {
         Patient patient = event.getRowValue();
@@ -282,6 +304,7 @@ public class AllPatientController {
      *
      * @param event The cell edit event containing the patient to update
      */
+
     private void doUpdate(TableColumn.CellEditEvent<Patient, String> event) {
         try {
             this.dao.update(event.getRowValue());
@@ -305,9 +328,11 @@ public class AllPatientController {
         }
     }
 
+
     /**
      * Handles the lock button action. Locks the selected patient record.
      */
+
     @FXML
     public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
@@ -362,9 +387,11 @@ public class AllPatientController {
         }
     }
 
+
     /**
      * Handles the add button action. Creates a new patient from the input fields.
      */
+
     @FXML
     public void handleAdd() {
         String surname = this.textFieldSurname.getText();
@@ -385,9 +412,11 @@ public class AllPatientController {
         }
     }
 
+
     /**
      * Clears all input fields.
      */
+
     private void clearTextfields() {
         this.textFieldFirstName.clear();
         this.textFieldSurname.clear();
@@ -403,6 +432,7 @@ public class AllPatientController {
      */
     private boolean areInputDataValid() {
         return !this.textFieldFirstName.getText().isBlank() &&
+<<<<<< Datenarchivierungssystem
                 !this.textFieldSurname.getText().isBlank() &&
                 !this.textFieldDateOfBirth.getText().isBlank() &&
                 !this.textFieldCareLevel.getText().isBlank() &&
@@ -435,5 +465,11 @@ public class AllPatientController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+======
+           !this.textFieldSurname.getText().isBlank() &&
+           !this.textFieldDateOfBirth.getText().isBlank() &&
+           !this.textFieldCareLevel.getText().isBlank() &&
+           !this.textFieldRoomNumber.getText().isBlank();
+>>>>>> FixMerge
     }
 }
