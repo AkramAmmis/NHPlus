@@ -25,9 +25,15 @@ Vorkonfigurierter Pfleger:
 - Temporäre Sperrung nach mehreren Fehlversuchen
 - Möglichkeit zur sicheren Passwortänderung (für Admins)
 - Zugriffsschutz durch Security-Framework
-- Automatische Löschung nach 10 Jahren
+- Automatische Löschung nach 10 Jahren (nach der Sperrung)
 - Pfleger können in der Tabelle angelegt und bearbeitet werden
 - Sperrlogik von Treatments, Caregivers und Patients
 - Pfleger können bei Behandlungen hinterlegt und geändert werden
 - Vermögensstand wurde entfernt
+
+
+## Fehlende Features
+
+-  Benutzer können sich immer noch einloggen, obwohl der Pfleger schon gesperrt wurde.
+-  Gesperrte Patienten und Pfleger können immer noch zur einer Behnadlung hinzugefügt werden
 
